@@ -60,7 +60,7 @@ void MainMenuScreen::DrawParticles() const {
 }
 
 // ── Tick ──────────────────────────────────────────────────────────────────────
-ScreenID MainMenuScreen::Tick(float dt, AuthService& auth) {
+ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& charSvc) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
@@ -92,14 +92,41 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth) {
     // ── Main buttons ──────────────────────────────────────────────────────────
     float bW = 264.f, bH = 54.f;
     float bX = cx - bW * .5f;
-    float sY = (float)sh * .52f;
-    float gap = 70.f;
+    float sY = (float)sh * .46f;
+    float gap = 64.f;
 
     ScreenID next = ScreenID::MainMenu;
 
-    if (UI::Button({ bX, sY,          bW, bH }, "START",       m_font, 24.f)) next = ScreenID::Game;
-    if (UI::Button({ bX, sY + gap,    bW, bH }, "HOW TO PLAY", m_font, 24.f)) next = ScreenID::HowToPlay;
-    if (UI::Button({ bX, sY + gap*2,  bW, bH }, "EXIT",        m_font, 24.f)) next = ScreenID::Exit;
+    bool loggedIn    = auth.IsLoggedIn();
+    bool hasChar     = loggedIn && charSvc.HasCharacter(auth.GetUserId());
+    bool canPlay     = loggedIn && hasChar;
+
+    Rectangle startRect = { bX, sY,         bW, bH };
+    Rectangle charRect  = { bX, sY + gap,   bW, bH };
+    Rectangle htpRect   = { bX, sY + gap*2, bW, bH };
+    Rectangle exitRect  = { bX, sY + gap*3, bW, bH };
+
+    // START
+    if (canPlay) {
+        if (UI::Button(startRect, "START", m_font, 24.f)) next = ScreenID::Game;
+    } else {
+        UI::ButtonDisabled(startRect, "START", m_font, 24.f);
+        if (!loggedIn)
+            UI::Tooltip(startRect, "Sign in to play", m_font);
+        else
+            UI::Tooltip(startRect, "Create a character first", m_font);
+    }
+
+    // CHARACTER
+    if (loggedIn) {
+        if (UI::Button(charRect, "CHARACTER", m_font, 24.f)) next = ScreenID::CharacterCreate;
+    } else {
+        UI::ButtonDisabled(charRect, "CHARACTER", m_font, 24.f);
+        UI::Tooltip(charRect, "Sign in first", m_font);
+    }
+
+    if (UI::Button(htpRect,  "HOW TO PLAY", m_font, 24.f)) next = ScreenID::HowToPlay;
+    if (UI::Button(exitRect, "EXIT",         m_font, 24.f)) next = ScreenID::Exit;
 
     // ── Sign In / Username (top right) ────────────────────────────────────────
     std::string siLabel = auth.IsLoggedIn() ? auth.GetUsername() : "Sign In";

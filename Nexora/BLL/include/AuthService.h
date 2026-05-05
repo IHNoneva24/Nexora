@@ -30,11 +30,13 @@ public:
 
     bool        IsLoggedIn()       const { return m_loggedIn; }
     std::string GetUsername()      const { return m_currentUser; }
+    int         GetUserId()        const { return m_currentUserId; }
 
 private:
     UserRepository& m_repo;
-    bool            m_loggedIn    = false;
+    bool            m_loggedIn      = false;
     std::string     m_currentUser;
+    int             m_currentUserId = 0;
 
     // djb2 hash → stored as decimal string
     // NOTE: Not cryptographically secure – use bcrypt/Argon2 in production!

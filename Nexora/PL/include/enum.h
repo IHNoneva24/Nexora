@@ -5,6 +5,7 @@ enum class ScreenID {
     Login,
     Register,
     HowToPlay,
+    CharacterCreate,
     Game,
     Exit
 };

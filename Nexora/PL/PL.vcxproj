@@ -19,19 +19,26 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CharacterCreatorScreen.cpp" />
     <ClCompile Include="src\HowToPlayScreen.cpp" />
     <ClCompile Include="src\LoginScreen.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MainMenuScreen.cpp" />
     <ClCompile Include="src\RegisterScreen.cpp" />
     <ClCompile Include="..\BLL\src\AuthService.cpp" />
+    <ClCompile Include="..\BLL\src\CharacterService.cpp" />
     <ClCompile Include="..\DL\src\Database.cpp" />
+    <ClCompile Include="..\DL\src\CharacterRepository.cpp" />
     <ClCompile Include="..\DL\src\UserRepository.cpp" />
     <ClCompile Include="..\vendor\sqlite3\sqlite3.c">
       <PreprocessorDefinitions>SQLITE_OMIT_LOAD_EXTENSION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\CharacterCreatorScreen.h" />
+    <ClInclude Include="..\BLL\include\CharacterService.h" />
+    <ClInclude Include="..\DL\include\CharacterData.h" />
+    <ClInclude Include="..\DL\include\CharacterRepository.h" />
     <ClInclude Include="include\HowToPlayScreen.h" />
     <ClInclude Include="include\LoginScreen.h" />
     <ClInclude Include="include\MainMenuScreen.h" />

@@ -4,7 +4,9 @@
 #include "LoginScreen.h"
 #include "RegisterScreen.h"
 #include "HowToPlayScreen.h"
+#include "CharacterCreatorScreen.h"
 #include "../../BLL/include/AuthService.h"
+#include "../../BLL/include/CharacterService.h"
 #include "raylib.h"
 
 inline ScreenID TickCurrentScreen(
@@ -13,15 +15,18 @@ inline ScreenID TickCurrentScreen(
     LoginScreen& login,
     RegisterScreen& reg,
     HowToPlayScreen& howToPlay,
+    CharacterCreatorScreen& charCreator,
     AuthService& auth,
+    CharacterService& charSvc,
     bool& running)
 {
     ScreenID next = current;
     switch (current) {
-        case ScreenID::MainMenu:  next = mainMenu.Tick(dt, auth);  break;
-        case ScreenID::Login:     next = login.Tick(dt, auth);     break;
-        case ScreenID::Register:  next = reg.Tick(dt, auth);       break;
-        case ScreenID::HowToPlay: next = howToPlay.Tick(dt);       break;
+        case ScreenID::MainMenu:        next = mainMenu.Tick(dt, auth, charSvc);  break;
+        case ScreenID::Login:           next = login.Tick(dt, auth);              break;
+        case ScreenID::Register:        next = reg.Tick(dt, auth);                break;
+        case ScreenID::HowToPlay:       next = howToPlay.Tick(dt);                break;
+        case ScreenID::CharacterCreate: next = charCreator.Tick(dt, charSvc);     break;
         case ScreenID::Game:
             DrawText("GAME - Press ESC to return to menu", 40, 40, 30, WHITE);
             if (IsKeyPressed(KEY_ESCAPE)) next = ScreenID::MainMenu;

@@ -90,6 +90,27 @@ inline bool InputField(Rectangle r, std::string& text, bool active,
     return enter;
 }
 
+// Grayed-out non-clickable button
+inline void ButtonDisabled(Rectangle r, const std::string& label, Font font, float fs = 22.f) {
+    DrawRectangleRec(r, { 22, 16, 8, 160 });
+    DrawRectangleLinesEx(r, 2, { 80, 65, 30, 160 });
+    Color tc = { 100, 88, 55, 160 };
+    Vector2 sz = MeasureTextEx(font, label.c_str(), fs, 1);
+    Vector2 tp = { r.x + (r.width - sz.x) * .5f, r.y + (r.height - sz.y) * .5f };
+    DrawTextEx(font, label.c_str(), tp, fs, 1, tc);
+}
+
+// Tooltip shown when mouse hovers over rect
+inline void Tooltip(Rectangle r, const std::string& msg, Font f) {
+    if (!CheckCollisionPointRec(GetMousePosition(), r)) return;
+    Vector2 sz = MeasureTextEx(f, msg.c_str(), 14.f, 1);
+    float tx = r.x + (r.width - sz.x) * .5f;
+    float ty = r.y - sz.y - 12.f;
+    DrawRectangle((int)tx - 8, (int)ty - 4, (int)sz.x + 16, (int)sz.y + 8, { 10,6,2,220 });
+    DrawRectangleLinesEx({ tx-8, ty-4, sz.x+16, sz.y+8 }, 1, C_BORDER_DARK);
+    DrawTextEx(f, msg.c_str(), { tx, ty }, 14.f, 1, C_TEXT_DIM);
+}
+
 inline void Label(const std::string& t, float x, float y, float fs, Color c, Font f) {
     DrawTextEx(f, t.c_str(), {x, y}, fs, 1, c);
 }

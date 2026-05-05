@@ -48,13 +48,16 @@ std::string AuthService::Login(const std::string& username,
     if (!m_repo.VerifyPassword(username, password))
         return "Invalid username or password.";
 
-    m_loggedIn    = true;
-    m_currentUser = username;
+    auto user = m_repo.FindByUsername(username);
+    m_loggedIn      = true;
+    m_currentUser   = username;
+    m_currentUserId = user.has_value() ? user->id : 0;
     return "";  // success
 }
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 void AuthService::Logout() {
-    m_loggedIn    = false;
+    m_loggedIn      = false;
     m_currentUser.clear();
+    m_currentUserId = 0;
 }

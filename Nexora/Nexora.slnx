@@ -3,7 +3,7 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="BLL/BLL.vcxproj" />
-  <Project Path="DL/DL.vcxproj" />
-  <Project Path="PL/PL.vcxproj" />
+  <Project Path="BLL/BLL.vcxproj" Id="361f355d-e931-4be2-ad0b-7d855599b432" />
+  <Project Path="DL/DL.vcxproj" Id="401676fb-826e-4fb8-ad5b-209ebf3f58f7" />
+  <Project Path="PL/PL.vcxproj" Id="9c673c34-568d-4f55-8baf-1e432418787d" />
 </Solution>

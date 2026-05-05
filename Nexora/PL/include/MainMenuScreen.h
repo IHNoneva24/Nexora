@@ -4,6 +4,7 @@
 #include "ParallaxBackground.h"
 #include "UIHelpers.h"
 #include "../../BLL/include/AuthService.h"
+#include "../../BLL/include/CharacterService.h"
 #include <string>
 #include <vector>
 
@@ -18,7 +19,7 @@ public:
 
     // Called between BeginDrawing / EndDrawing.
     // Returns the next ScreenID to navigate to.
-    ScreenID Tick(float dt, AuthService& auth);
+    ScreenID Tick(float dt, AuthService& auth, CharacterService& charSvc);
 
 private:
     void DrawBackground(int sw, int sh);
