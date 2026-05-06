@@ -37,8 +37,11 @@
     <ClCompile Include="src\CharacterService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="src\NetworkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
   </ItemGroup>
 </Project>

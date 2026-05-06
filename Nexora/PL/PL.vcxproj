@@ -30,6 +30,7 @@
     <ClCompile Include="src\HostLobbyScreen.cpp" />
     <ClCompile Include="src\JoinLobbyScreen.cpp" />
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClCompile Include="src\QuestionCreateScreen.cpp" />
     <ClCompile Include="src\GameScreen.cpp" />
     <ClCompile Include="src\SinglePlayerScreen.cpp" />
@@ -38,6 +39,9 @@
     <ClCompile Include="src\QuestionCreateScreen.cpp" />
     <ClCompile Include="src\GameScreen.cpp" />
 >>>>>>> a71f47d (Add game)
+=======
+    <ClCompile Include="src\NetworkManager.cpp" />
+>>>>>>> 3fe0748 (Add multiplayer)
   </ItemGroup>
 
   <!-- PL headers only -->
@@ -55,6 +59,7 @@
     <ClInclude Include="include\HostLobbyScreen.h" />
     <ClInclude Include="include\JoinLobbyScreen.h" />
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClInclude Include="include\QuestionCreateScreen.h" />
     <ClInclude Include="include\GameScreen.h" />
     <ClInclude Include="include\SinglePlayerScreen.h" />
@@ -65,6 +70,10 @@
     <ClInclude Include="include\GameContext.h" />
     <ClInclude Include="include\screen.h" />
 >>>>>>> a71f47d (Add game)
+=======
+    <ClInclude Include="include\NetworkManager.h" />
+    <ClInclude Include="include\screen.h" />
+>>>>>>> 3fe0748 (Add multiplayer)
   </ItemGroup>
 
   <!-- Link BLL and DL as static libraries -->

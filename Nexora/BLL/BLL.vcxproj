@@ -29,7 +29,10 @@
   <ItemGroup>
     <ClCompile Include="src\AuthService.cpp" />
     <ClCompile Include="src\CharacterService.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="src\NetworkManager.cpp" />
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

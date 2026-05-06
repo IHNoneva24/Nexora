@@ -1,9 +1,13 @@
 #include "../include/ScreenLoop.h"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #include "../include/NetworkManager.h"
 #include "../include/GameContext.h"
 >>>>>>> a71f47d (Add game)
+=======
+#include "../include/NetworkManager.h"
+>>>>>>> 3fe0748 (Add multiplayer)
 #include "../../DL/include/Database.h"
 #include "../../DL/include/UserRepository.h"
 #include "../../DL/include/CharacterRepository.h"
@@ -29,9 +33,12 @@ int main() {
     // Networking
     NetworkManager net;
 
+<<<<<<< HEAD
     // Shared game context (populated by lobby/question screens before game starts)
     GameContext ctx;
 
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
     // Screens
     MainMenuScreen         mainMenu;
     LoginScreen            login;
@@ -40,12 +47,15 @@ int main() {
     CharacterCreatorScreen charCreator;
     HostLobbyScreen        hostLobby;
     JoinLobbyScreen        joinLobby;
+<<<<<<< HEAD
     QuestionCreateScreen   questionCreate;
     GameScreen             gameScreen;
 <<<<<<< HEAD
     SinglePlayerScreen     singlePlayer;
 =======
 >>>>>>> a71f47d (Add game)
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
 
     mainMenu.Load(assetRoot, font);
     login.Load(assetRoot, font);
@@ -54,12 +64,15 @@ int main() {
     charCreator.Load(assetRoot, font);
     hostLobby.Load(assetRoot, font);
     joinLobby.Load(assetRoot, font);
+<<<<<<< HEAD
     questionCreate.Load(assetRoot, font);
     gameScreen.Load(assetRoot, font);
 <<<<<<< HEAD
     singlePlayer.Load(assetRoot, font);
 =======
 >>>>>>> a71f47d (Add game)
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
 
     ScreenID current = ScreenID::MainMenu;
     ScreenID prev    = ScreenID::MainMenu;
@@ -68,8 +81,15 @@ int main() {
     while (!WindowShouldClose() && running) {
         float dt = GetFrameTime();
 
+<<<<<<< HEAD
         net.Update(dt);
 
+=======
+        // Network tick (broadcasts, accepts, discovery) — always runs
+        net.Update(dt);
+
+        // Call Enter when transitioning into a screen that needs it
+>>>>>>> 3fe0748 (Add multiplayer)
         if (current != prev) {
             if (current == ScreenID::CharacterCreate)
                 charCreator.Enter(auth.GetUserId(), charSvc);
@@ -77,6 +97,7 @@ int main() {
                 hostLobby.Enter(auth, charSvc);
             if (current == ScreenID::JoinLobby)
                 joinLobby.Enter(auth, charSvc, mainMenu.GetJoinedGameName(), net);
+<<<<<<< HEAD
             if (current == ScreenID::QuestionCreate) {
                 // Save character data from whichever lobby we came from
                 if (prev == ScreenID::HostLobby) hostLobby.FillGameContext(ctx);
@@ -100,6 +121,8 @@ int main() {
                 gameScreen.Enter(ctx, net);
             }
 >>>>>>> a71f47d (Add game)
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
         }
 
         BeginDrawing();
@@ -109,10 +132,14 @@ int main() {
             current, dt,
             mainMenu, login, reg, howToPlay, charCreator,
 <<<<<<< HEAD
+<<<<<<< HEAD
             hostLobby, joinLobby, questionCreate, gameScreen, singlePlayer, net,
 =======
             hostLobby, joinLobby, questionCreate, gameScreen, net,
 >>>>>>> a71f47d (Add game)
+=======
+            hostLobby, joinLobby, net,
+>>>>>>> 3fe0748 (Add multiplayer)
             auth, charSvc, running);
 
         EndDrawing();
@@ -129,12 +156,15 @@ int main() {
     charCreator.Unload();
     hostLobby.Unload();
     joinLobby.Unload();
+<<<<<<< HEAD
     questionCreate.Unload();
     gameScreen.Unload();
 <<<<<<< HEAD
     singlePlayer.Unload();
 =======
 >>>>>>> a71f47d (Add game)
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
     UnloadFont(font);
     CloseWindow();
     return 0;

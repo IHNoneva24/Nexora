@@ -1,5 +1,6 @@
 #include "../include/HostLobbyScreen.h"
 #include "../include/CharacterRenderer.h"
+<<<<<<< HEAD
 
 void HostLobbyScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot  = assetRoot;
@@ -9,6 +10,16 @@ void HostLobbyScreen::Load(const std::string& assetRoot, Font font) {
 
 void HostLobbyScreen::Unload() {
     UnloadTexture(m_background);
+=======
+#include <cmath>
+
+void HostLobbyScreen::Load(const std::string& assetRoot, Font font) {
+    m_assetRoot = assetRoot;
+    m_font      = font;
+}
+
+void HostLobbyScreen::Unload() {
+>>>>>>> 3fe0748 (Add multiplayer)
     CharacterRenderer::UnloadLayers(m_charLayers);
     CharacterRenderer::UnloadLayers(m_remoteCharLayers);
 }
@@ -49,12 +60,16 @@ void HostLobbyScreen::DrawPlatform(float cx, float y, float w, float h) {
 
 bool HostLobbyScreen::DrawNamingScreen(int sw, int sh, NetworkManager& net) {
     float cx = (float)sw * .5f;
+<<<<<<< HEAD
     if (m_background.id != 0)
         DrawTexturePro(m_background,
             { 0, 0, (float)m_background.width, (float)m_background.height },
             { 0, 0, (float)sw, (float)sh }, { 0, 0 }, 0.f, WHITE);
     else
         DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 240 });
+=======
+    DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 240 });
+>>>>>>> 3fe0748 (Add multiplayer)
 
     float panelW = 480.f, panelH = 230.f;
     Rectangle panel = { cx - panelW * .5f, (float)sh * .35f, panelW, panelH };
@@ -83,11 +98,17 @@ bool HostLobbyScreen::DrawNamingScreen(int sw, int sh, NetworkManager& net) {
     // CREATE
     if (!m_gameName.empty()) {
         if (UI::Button({ startX + btnW + gap, btnY, btnW, btnH }, "CREATE", m_font, 22.f) || enter) {
+<<<<<<< HEAD
             try {
                 net.StartHost(m_gameName, m_hostName);
                 m_charDataSent = false;
                 m_state = SubState::Lobby;
             } catch (...) {}
+=======
+            net.StartHost(m_gameName, m_hostName);
+            m_charDataSent = false;
+            m_state = SubState::Lobby;
+>>>>>>> 3fe0748 (Add multiplayer)
         }
     } else {
         UI::ButtonDisabled({ startX + btnW + gap, btnY, btnW, btnH }, "CREATE", m_font, 22.f);
@@ -100,16 +121,21 @@ bool HostLobbyScreen::DrawNamingScreen(int sw, int sh, NetworkManager& net) {
 
 ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     float cx = (float)sw * .5f;
+<<<<<<< HEAD
     if (m_background.id != 0)
         DrawTexturePro(m_background,
             { 0, 0, (float)m_background.width, (float)m_background.height },
             { 0, 0, (float)sw, (float)sh }, { 0, 0 }, 0.f, WHITE);
     else
         DrawRectangle(0, 0, sw, sh, { 8, 5, 2, 255 });
+=======
+    DrawRectangle(0, 0, sw, sh, { 8, 5, 2, 245 });
+>>>>>>> 3fe0748 (Add multiplayer)
 
     UI::LabelShadow(m_gameName, cx, 28.f, 42.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(cx - 180.f, 80.f, 360.f);
 
+<<<<<<< HEAD
     float platY   = (float)sh * 0.68f;
     float charH   = (float)sh * 0.38f;
     float leftCX  = (float)sw * 0.20f;
@@ -126,17 +152,32 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
         DrawRectangleLinesEx(r, 1.f, { 100, 80, 30, 180 });
         UI::LabelC(name, cx, ty + (r.height - sz.y) * .5f, fs, UI::C_TEXT_LIGHT, m_font);
     };
+=======
+    float areaTop    = 110.f;
+    float areaBottom = (float)sh - 100.f;
+    float areaH      = areaBottom - areaTop;
+    float platW      = (float)sw * .28f;
+    float platH      = 30.f;
+    float platY      = areaTop + areaH * .72f;
+    float charH      = areaH * .50f;
+    float leftCX     = (float)sw * .25f;
+    float rightCX    = (float)sw * .75f;
+>>>>>>> 3fe0748 (Add multiplayer)
 
     // Detect client disconnect — go back to waiting state
     if (net.PollDisconnected()) {
         CharacterRenderer::UnloadLayers(m_remoteCharLayers);
         m_charDataSent = false;
+<<<<<<< HEAD
         m_remoteUsername.clear();
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
         // net already resumed broadcasting inside HandleDisconnect
     }
 
     bool joined = net.IsClientConnected();
 
+<<<<<<< HEAD
     // When client first connects: exchange character data and username
     if (joined && !m_charDataSent) {
         net.SendCharacterData(m_myCharData);
@@ -154,11 +195,23 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     CharacterData remoteData;
     if (net.PollRemoteCharacterData(remoteData)) {
         m_remoteCharData = remoteData;
+=======
+    // When client first connects: exchange character data
+    if (joined && !m_charDataSent) {
+        net.SendCharacterData(m_myCharData);
+        m_charDataSent = true;
+    }
+
+    // Receive client's character data as soon as it arrives
+    CharacterData remoteData;
+    if (net.PollRemoteCharacterData(remoteData)) {
+>>>>>>> 3fe0748 (Add multiplayer)
         CharacterRenderer::UnloadLayers(m_remoteCharLayers);
         m_remoteCharLayers = CharacterRenderer::LoadLayers(remoteData, m_assetRoot);
     }
 
     // Left — host character
+<<<<<<< HEAD
     {
         bool  isFemale = (m_myCharData.gender == 1);
         float yOff     = isFemale ? -14.f : 0.f;
@@ -169,21 +222,40 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     // Right — client slot
     if (!joined) {
         Color ghost = { 180, 160, 100, 80 };
+=======
+    DrawPlatform(leftCX, platY, platW, platH);
+    CharacterRenderer::Draw(m_charLayers, leftCX, platY, charH);
+    UI::LabelC("YOU", leftCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+
+    // Right — client slot
+    DrawPlatform(rightCX, platY, platW, platH);
+    if (!joined) {
+        float pulse = (float)(0.55 + 0.25 * sin(GetTime() * 2.0));
+        Color ghost = { 180, 160, 100, (unsigned char)(pulse * 110) };
+>>>>>>> 3fe0748 (Add multiplayer)
         float gH = charH * .9f, gW = CharacterRenderer::FRAME_W / CharacterRenderer::FRAME_H * gH;
         DrawRectangle((int)(rightCX - gW * .5f), (int)(platY - gH), (int)gW, (int)gH, ghost);
         UI::LabelC("Waiting for other player...", rightCX, platY - charH - 28.f,
                    18.f, UI::C_TEXT_DIM, m_font);
     } else {
+<<<<<<< HEAD
         bool  rFemale = (m_remoteCharData.gender == 1);
         float rYOff   = rFemale ? -14.f : 0.f;
         if (!m_remoteCharLayers.empty()) {
             CharacterRenderer::Draw(m_remoteCharLayers, rightCX, platY, charH,
                                     false, rFemale ? 2 : -1, 5.f, rYOff);
         } else {
+=======
+        if (!m_remoteCharLayers.empty()) {
+            CharacterRenderer::Draw(m_remoteCharLayers, rightCX, platY, charH);
+        } else {
+            // Character data not yet received — draw a faint silhouette
+>>>>>>> 3fe0748 (Add multiplayer)
             float gH = charH * .9f, gW = CharacterRenderer::FRAME_W / CharacterRenderer::FRAME_H * gH;
             DrawRectangle((int)(rightCX - gW * .5f), (int)(platY - gH), (int)gW, (int)gH,
                           { 180, 160, 100, 60 });
         }
+<<<<<<< HEAD
         std::string clientLabel = m_remoteUsername.empty() ? "Player 2" : m_remoteUsername;
         DrawNameTag(clientLabel, rightCX, platY + rYOff - charH);
         UI::LabelC(clientLabel + " connected!", rightCX, platY - charH - 28.f,
@@ -191,6 +263,14 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     }
 
     DrawLineEx({ cx, 110.f }, { cx, (float)sh - 100.f }, 1, { 80,60,20,120 });
+=======
+        UI::LabelC("Player 2", rightCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+        UI::LabelC("Player connected!", rightCX, platY - charH - 28.f,
+                   18.f, UI::C_TEXT_OK, m_font);
+    }
+
+    DrawLineEx({ cx, areaTop + 10.f }, { cx, areaBottom - 10.f }, 1, { 80,60,20,120 });
+>>>>>>> 3fe0748 (Add multiplayer)
 
     // Bottom buttons
     float btnH = 50.f, btnW = 180.f;
@@ -206,7 +286,11 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     if (joined) {
         if (UI::Button({ (float)sw - btnW - 20.f, btnY, btnW, btnH }, "START GAME", m_font, 20.f)) {
             net.SendStartGame();
+<<<<<<< HEAD
             return ScreenID::QuestionCreate;
+=======
+            return ScreenID::Game;
+>>>>>>> 3fe0748 (Add multiplayer)
         }
     } else {
         UI::ButtonDisabled({ (float)sw - btnW - 20.f, btnY, btnW, btnH }, "START GAME", m_font, 20.f);

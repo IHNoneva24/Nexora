@@ -61,8 +61,12 @@ inline std::vector<Texture2D> LoadLayers(const CharacterData& data,
 
         load(skin + "Female Skin" + n(data.skinIdx) + ".png");
         if (data.topIdx  < 10) load(cloth + tops[data.topIdx]);
+<<<<<<< HEAD
         if (data.feetIdx < 7)  load(cloth + feet[data.feetIdx]); // feet before skirt (index 2)
         if (data.pantsIdx > 0) load(cloth + "Skirt.png");         // skirt covers boots
+=======
+        if (data.feetIdx < 7)  load(cloth + feet[data.feetIdx]);
+>>>>>>> 3fe0748 (Add multiplayer)
         load(hair + "Female Hair" + n(data.hairIdx) + ".png");
     }
     return layers;
@@ -74,6 +78,7 @@ inline void UnloadLayers(std::vector<Texture2D>& layers) {
 }
 
 // Draw the standing frame centered at cx, sitting on top of platformY.
+<<<<<<< HEAD
 // Pass flipped=true to mirror the sprite horizontally (no GPU readback needed).
 // feetLayerIdx: which layer index is the boots/feet (-1 = none).
 // feetYOff: extra y offset (positive = lower) applied only to the feet layer.
@@ -81,10 +86,15 @@ inline void UnloadLayers(std::vector<Texture2D>& layers) {
 inline void Draw(const std::vector<Texture2D>& layers,
                  float cx, float platformY, float charH, bool flipped = false,
                  int feetLayerIdx = -1, float feetYOff = 0.f, float yOff = 0.f) {
+=======
+inline void Draw(const std::vector<Texture2D>& layers,
+                 float cx, float platformY, float charH) {
+>>>>>>> 3fe0748 (Add multiplayer)
     if (layers.empty()) return;
     float scale = charH / FRAME_H;
     float destW = FRAME_W * scale;
     float destH = FRAME_H * scale;
+<<<<<<< HEAD
     float baseY = platformY + yOff - destH;
     Rectangle src = FRAME_SRC;
     if (flipped) src.width = -src.width;
@@ -94,6 +104,12 @@ inline void Draw(const std::vector<Texture2D>& layers,
         Rectangle dest = { cx - destW * .5f, ly, destW, destH };
         DrawTexturePro(layers[i], src, dest, { 0, 0 }, 0.f, WHITE);
     }
+=======
+    Rectangle dest = { cx - destW * .5f, platformY - destH, destW, destH };
+    for (const auto& t : layers)
+        if (t.id != 0)
+            DrawTexturePro(t, FRAME_SRC, dest, { 0, 0 }, 0.f, WHITE);
+>>>>>>> 3fe0748 (Add multiplayer)
 }
 
 } // namespace CharacterRenderer

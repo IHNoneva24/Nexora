@@ -39,6 +39,7 @@
     <ClCompile Include="src\JoinLobbyScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="src\GameScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,6 +47,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SinglePlayerScreen.cpp">
+=======
+    <ClCompile Include="src\NetworkManager.cpp">
+>>>>>>> 3fe0748 (Add multiplayer)
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,6 +57,12 @@
     <ClInclude Include="include\enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
+=======
+    <ClInclude Include="include\screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+>>>>>>> 3fe0748 (Add multiplayer)
     <ClInclude Include="include\ScreenLoop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -86,6 +96,7 @@
     <ClInclude Include="include\JoinLobbyScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="include\QuestionCreateScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -93,6 +104,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SinglePlayerScreen.h">
+=======
+    <ClInclude Include="include\NetworkManager.h">
+>>>>>>> 3fe0748 (Add multiplayer)
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

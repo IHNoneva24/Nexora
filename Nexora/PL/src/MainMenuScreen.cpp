@@ -74,6 +74,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
 
     ScreenID next = ScreenID::MainMenu;
 
+<<<<<<< HEAD
     bool popupOpen = m_showSettings || m_showJoinPopup;
     bool loggedIn = auth.IsLoggedIn();
     bool hasChar  = loggedIn && charSvc.HasCharacter(auth.GetUserId());
@@ -130,11 +131,36 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
             else
                 UI::Tooltip(hostRect, "Create a character first", m_font);
         }
+=======
+    bool loggedIn = auth.IsLoggedIn();
+    bool hasChar  = loggedIn && charSvc.HasCharacter(auth.GetUserId());
+    bool canPlay  = loggedIn && hasChar;
+
+    Rectangle hostRect = { bX, sY,         bW, bH };
+    Rectangle joinRect = { bX, sY + gap,   bW, bH };
+    Rectangle charRect = { bX, sY + gap*2, bW, bH };
+    Rectangle htpRect  = { bX, sY + gap*3, bW, bH };
+    Rectangle exitRect = { bX, sY + gap*4, bW, bH };
+
+    // HOST GAME
+    if (canPlay) {
+        if (UI::Button(hostRect, "HOST GAME", m_font, 24.f)) next = ScreenID::HostLobby;
+    } else {
+        UI::ButtonDisabled(hostRect, "HOST GAME", m_font, 24.f);
+        if (!loggedIn)
+            UI::Tooltip(hostRect, "Sign in to play", m_font);
+        else
+            UI::Tooltip(hostRect, "Create a character first", m_font);
+>>>>>>> 3fe0748 (Add multiplayer)
     }
 
     // JOIN GAME
     if (canPlay) {
+<<<<<<< HEAD
         if (UI::Button(joinRect, "JOIN GAME", m_font, 24.f) && !popupOpen) {
+=======
+        if (UI::Button(joinRect, "JOIN GAME", m_font, 24.f)) {
+>>>>>>> 3fe0748 (Add multiplayer)
             m_showJoinPopup   = true;
             m_joinScroll      = 0;
             m_connectError    = "";
@@ -145,12 +171,19 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
         }
     } else {
         UI::ButtonDisabled(joinRect, "JOIN GAME", m_font, 24.f);
+<<<<<<< HEAD
         if (!popupOpen) {
             if (!loggedIn)
                 UI::Tooltip(joinRect, "Sign in to play", m_font);
             else
                 UI::Tooltip(joinRect, "Create a character first", m_font);
         }
+=======
+        if (!loggedIn)
+            UI::Tooltip(joinRect, "Sign in to play", m_font);
+        else
+            UI::Tooltip(joinRect, "Create a character first", m_font);
+>>>>>>> 3fe0748 (Add multiplayer)
     }
 
     // CHARACTER
@@ -183,6 +216,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
                   14.f, UI::C_TEXT_DIM, m_font);
     }
 
+<<<<<<< HEAD
     // ── Settings button (top-left) ─────────────────────────────────────────────
     Rectangle settingsBtn = { 16.f, 22.f, 100.f, 38.f };
     if (UI::Button(settingsBtn, "SETTINGS", m_font, 16.f) && !m_showJoinPopup)
@@ -235,6 +269,8 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
         if (IsKeyPressed(KEY_ESCAPE)) m_showSettings = false;
     }
 
+=======
+>>>>>>> 3fe0748 (Add multiplayer)
     // ── Join-game popup (drawn on top of everything) ──────────────────────────
     if (m_showJoinPopup) {
         if (DrawJoinPopup(sw, sh, net))
@@ -281,7 +317,13 @@ bool MainMenuScreen::DrawJoinPopup(int sw, int sh, NetworkManager& net) {
     int   visRows = 5;
 
     if (games.empty()) {
+<<<<<<< HEAD
         UI::LabelC("Searching for games on your network...", cx, listY + rowH * 1.2f, 18.f, UI::C_TEXT_DIM, m_font);
+=======
+        float pulse = (float)(0.6 + 0.4 * sin(GetTime() * 1.8));
+        Color dim = { 160, 140, 100, (unsigned char)(pulse * 200) };
+        UI::LabelC("Searching for games on your network...", cx, listY + rowH * 1.2f, 18.f, dim, m_font);
+>>>>>>> 3fe0748 (Add multiplayer)
         UI::LabelC("Ask your friend to host a game first.", cx, listY + rowH * 1.2f + 28.f,
                    15.f, UI::C_TEXT_DIM, m_font);
     } else {
@@ -310,6 +352,7 @@ bool MainMenuScreen::DrawJoinPopup(int sw, int sh, NetworkManager& net) {
 
             Rectangle joinBtn = { row.x + row.width - 90.f, row.y + 10.f, 80.f, rowH - 26.f };
             if (UI::Button(joinBtn, "JOIN", m_font, 16.f)) {
+<<<<<<< HEAD
                 try {
                     std::string err;
                     if (net.Connect(g.hostIP, g.port, err)) {
@@ -323,6 +366,18 @@ bool MainMenuScreen::DrawJoinPopup(int sw, int sh, NetworkManager& net) {
                     }
                 } catch (...) {
                     m_connectError = "An unexpected error occurred.";
+=======
+                std::string err;
+                if (net.Connect(g.hostIP, g.port, err)) {
+                    m_joinedGameName  = g.gameName;
+                    m_showJoinPopup   = false;
+                    m_discoveryActive = false; // discovery socket closed by Connect internals? No — stop manually
+                    // UDP discovery socket is separate; stop it now that we have a TCP connection
+                    net.StopDiscovery();
+                    return true;
+                } else {
+                    m_connectError = err;
+>>>>>>> 3fe0748 (Add multiplayer)
                 }
             }
         }
