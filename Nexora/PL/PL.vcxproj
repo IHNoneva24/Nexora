@@ -18,35 +18,48 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+
+  <!-- PL source files only — BLL/DL compiled in their own projects -->
   <ItemGroup>
-    <ClCompile Include="src\CharacterCreatorScreen.cpp" />
-    <ClCompile Include="src\HowToPlayScreen.cpp" />
-    <ClCompile Include="src\LoginScreen.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MainMenuScreen.cpp" />
+    <ClCompile Include="src\LoginScreen.cpp" />
     <ClCompile Include="src\RegisterScreen.cpp" />
-    <ClCompile Include="..\BLL\src\AuthService.cpp" />
-    <ClCompile Include="..\BLL\src\CharacterService.cpp" />
-    <ClCompile Include="..\DL\src\Database.cpp" />
-    <ClCompile Include="..\DL\src\CharacterRepository.cpp" />
-    <ClCompile Include="..\DL\src\UserRepository.cpp" />
-    <ClCompile Include="..\vendor\sqlite3\sqlite3.c">
-      <PreprocessorDefinitions>SQLITE_OMIT_LOAD_EXTENSION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
+    <ClCompile Include="src\HowToPlayScreen.cpp" />
+    <ClCompile Include="src\CharacterCreatorScreen.cpp" />
+    <ClCompile Include="src\HostLobbyScreen.cpp" />
+    <ClCompile Include="src\JoinLobbyScreen.cpp" />
+    <ClCompile Include="src\NetworkManager.cpp" />
   </ItemGroup>
+
+  <!-- PL headers only -->
   <ItemGroup>
-    <ClInclude Include="include\CharacterCreatorScreen.h" />
-    <ClInclude Include="..\BLL\include\CharacterService.h" />
-    <ClInclude Include="..\DL\include\CharacterData.h" />
-    <ClInclude Include="..\DL\include\CharacterRepository.h" />
-    <ClInclude Include="include\HowToPlayScreen.h" />
-    <ClInclude Include="include\LoginScreen.h" />
-    <ClInclude Include="include\MainMenuScreen.h" />
-    <ClInclude Include="include\ParallaxBackground.h" />
-    <ClInclude Include="include\RegisterScreen.h" />
     <ClInclude Include="include\enum.h" />
+    <ClInclude Include="include\ScreenLoop.h" />
     <ClInclude Include="include\UIHelpers.h" />
+    <ClInclude Include="include\ParallaxBackground.h" />
+    <ClInclude Include="include\CharacterRenderer.h" />
+    <ClInclude Include="include\MainMenuScreen.h" />
+    <ClInclude Include="include\LoginScreen.h" />
+    <ClInclude Include="include\RegisterScreen.h" />
+    <ClInclude Include="include\HowToPlayScreen.h" />
+    <ClInclude Include="include\CharacterCreatorScreen.h" />
+    <ClInclude Include="include\HostLobbyScreen.h" />
+    <ClInclude Include="include\JoinLobbyScreen.h" />
+    <ClInclude Include="include\NetworkManager.h" />
+    <ClInclude Include="include\screen.h" />
   </ItemGroup>
+
+  <!-- Link BLL and DL as static libraries -->
+  <ItemGroup>
+    <ProjectReference Include="..\BLL\BLL.vcxproj">
+      <Project>{361f355d-e931-4be2-ad0b-7d855599b432}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\DL\DL.vcxproj">
+      <Project>{401676fb-826e-4fb8-ad5b-209ebf3f58f7}</Project>
+    </ProjectReference>
+  </ItemGroup>
+
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -99,13 +112,25 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+
+  <!-- Shared settings across all configurations -->
+  <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendor\raylib\include;$(ProjectDir)..\BLL\include;$(ProjectDir)..\DL\include;$(ProjectDir)..\vendor\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)vendor\raylib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;raylib.lib;gdi32.lib;opengl32.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,53 +139,40 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\vendor\raylib\include;$(ProjectDir)..\BLL\include;$(ProjectDir)..\DL\include;$(ProjectDir)..\vendor\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vendor\raylib\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;raylib.lib;gdi32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)\vendor\raylib\include;$(ProjectDir)..\BLL\include;$(ProjectDir)..\DL\include;$(ProjectDir)..\vendor\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\vendor\raylib\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;raylib.lib;gdi32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
