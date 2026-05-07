@@ -34,6 +34,7 @@ private:
 
     CharacterData          m_myCharData     = {};
     bool                   m_charDataSent   = false;
+    std::string            m_remoteUsername;    // received from client
     std::vector<Texture2D> m_charLayers;       // host's own layers
     std::vector<Texture2D> m_remoteCharLayers; // client's layers (received over network)
 };

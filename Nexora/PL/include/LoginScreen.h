@@ -3,6 +3,7 @@
 #include "enum.h"
 #include "ParallaxBackground.h"
 #include "UIHelpers.h"
+#include "NetworkManager.h"
 #include "../../BLL/include/AuthService.h"
 #include <string>
 
@@ -15,7 +16,7 @@ public:
     void Unload();
     void Reset();
 
-    ScreenID Tick(float dt, AuthService& auth);
+    ScreenID Tick(float dt, AuthService& auth, NetworkManager& net);
 
 private:
     ParallaxBackground m_bg;
@@ -28,4 +29,5 @@ private:
     std::string m_successMsg;
     float       m_msgTimer  = 0.f;
     bool        m_loggedIn  = false;   // triggers deferred return
+    bool        m_checking  = false;   // waiting for duplicate-login check
 };

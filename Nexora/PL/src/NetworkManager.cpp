@@ -13,6 +13,13 @@ static constexpr uint16_t GAME_PORT_MAX      = 7787; // try up to 10 ports
 static constexpr float    ANNOUNCE_INTERVAL  = 1.0f;
 static constexpr float    ENTRY_TIMEOUT      = 6.0f;
 static constexpr uint32_t MAGIC              = 0x4E455852; // "NEXR"
+static constexpr uint16_t SESSION_PORT       = 7775;
+static constexpr uint32_t SESSION_MAGIC      = 0x4E455853; // "NEXS"
+
+struct SessionPacket {
+    uint32_t magic;
+    char     username[32];
+};
 
 struct DiscoveryPacket {
     uint32_t magic;
@@ -35,6 +42,11 @@ NetworkManager::NetworkManager() {
 
 NetworkManager::~NetworkManager() {
     Shutdown();
+    StopSessionBroadcast();
+    if (m_checkSock != SOCK_NONE) {
+        closesocket((SOCKET)m_checkSock);
+        m_checkSock = SOCK_NONE;
+    }
     WSACleanup();
 }
 
@@ -45,14 +57,17 @@ void NetworkManager::Shutdown() {
     closeS(m_listenSock);
     closeS(m_gameSock);
     closeS(m_udpSock);
+    // Note: m_sessionSock is NOT closed here — it lives across game sessions
 
     m_role               = NetRole::None;
     m_connected          = false;
     m_gamePort           = 0;
     m_startGameReceived  = false;
-    m_remoteCharReceived = false;
-    m_remoteChar         = {};
-    m_announceTimer      = 0.f;
+    m_remoteCharReceived     = false;
+    m_remoteUsernameReceived = false;
+    m_remoteChar             = {};
+    m_remoteUsername.clear();
+    m_announceTimer          = 0.f;
     m_entries.clear();
     m_publicList.clear();
 }
@@ -264,6 +279,7 @@ bool NetworkManager::Connect(const std::string& hostIP, uint16_t port, std::stri
 
 // Message types:  0x02 = StartGame (1 byte total)
 //                 0x03 = CharacterData (1 + 24 bytes = 25 bytes total)
+//                 0x04 = Username     (1 + 32 bytes = 33 bytes total)
 
 void NetworkManager::SendCharacterData(const CharacterData& data) {
     if (!m_connected || m_gameSock == SOCK_NONE) return;
@@ -283,6 +299,25 @@ bool NetworkManager::PollRemoteCharacterData(CharacterData& out) {
     m_remoteCharReceived = false;
     out = m_remoteChar;
     return true;
+}
+
+void NetworkManager::SendUsername(const std::string& username) {
+    if (!m_connected || m_gameSock == SOCK_NONE) return;
+    uint8_t buf[33] = {};
+    buf[0] = 0x04;
+    strncpy_s((char*)buf + 1, 32, username.c_str(), 31);
+    send((SOCKET)m_gameSock, (char*)buf, 33, 0);
+}
+
+bool NetworkManager::PollRemoteUsername(std::string& out) {
+    if (!m_remoteUsernameReceived) return false;
+    m_remoteUsernameReceived = false;
+    out = m_remoteUsername;
+    return true;
+}
+
+void NetworkManager::DisconnectClient() {
+    HandleDisconnect();
 }
 
 void NetworkManager::SendStartGame() {
@@ -306,12 +341,14 @@ void NetworkManager::HandleDisconnect() {
         closesocket((SOCKET)m_gameSock);
         m_gameSock = SOCK_NONE;
     }
-    m_connected          = false;
-    m_remoteDisconnected = true;
-    m_startGameReceived  = false;
-    m_remoteCharReceived = false;
-    m_remoteChar         = {};
-    m_announceTimer      = ANNOUNCE_INTERVAL; // host will broadcast again immediately
+    m_connected              = false;
+    m_remoteDisconnected     = true;
+    m_startGameReceived      = false;
+    m_remoteCharReceived     = false;
+    m_remoteUsernameReceived = false;
+    m_remoteChar             = {};
+    m_remoteUsername.clear();
+    m_announceTimer          = ANNOUNCE_INTERVAL; // host will broadcast again immediately
 }
 
 // Drains the TCP receive buffer and dispatches messages by type.
@@ -352,6 +389,13 @@ void NetworkManager::PollMessages() {
             memcpy(&m_remoteChar.pantsIdx, buf + 17, 4);
             memcpy(&m_remoteChar.feetIdx,  buf + 21, 4);
             m_remoteCharReceived = true;
+        } else if (type == 0x04) {
+            if (avail < 33) break;
+            uint8_t buf[33];
+            recv(s, (char*)buf, 33, 0);
+            buf[32] = '\0';
+            m_remoteUsername = (const char*)(buf + 1);
+            m_remoteUsernameReceived = true;
         } else {
             recv(s, (char*)&type, 1, 0);
         }
@@ -378,4 +422,118 @@ void NetworkManager::Update(float dt) {
         else
             PollMessages();
     }
+
+    // Session presence broadcast (runs independently of game networking)
+    if (m_sessionSock != SOCK_NONE) {
+        m_sessionTimer += dt;
+        if (m_sessionTimer >= ANNOUNCE_INTERVAL) {
+            BroadcastSession();
+            m_sessionTimer = 0.f;
+        }
+    }
 }
+
+// ── Session presence ──────────────────────────────────────────────────────────
+
+void NetworkManager::StartSessionBroadcast(const std::string& username) {
+    StopSessionBroadcast();
+    SOCKET s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s == INVALID_SOCKET) return;
+    int bcast = 1;
+    setsockopt(s, SOL_SOCKET, SO_BROADCAST, (char*)&bcast, sizeof(bcast));
+    m_sessionSock     = (uintptr_t)s;
+    m_sessionUsername  = username;
+    m_sessionTimer    = ANNOUNCE_INTERVAL; // broadcast immediately
+}
+
+void NetworkManager::StopSessionBroadcast() {
+    if (m_sessionSock != SOCK_NONE) {
+        closesocket((SOCKET)m_sessionSock);
+        m_sessionSock = SOCK_NONE;
+    }
+    m_sessionUsername.clear();
+    m_sessionTimer = 0.f;
+}
+
+void NetworkManager::BroadcastSession() {
+    if (m_sessionSock == SOCK_NONE) return;
+    SessionPacket pkt{};
+    pkt.magic = SESSION_MAGIC;
+    strncpy_s(pkt.username, m_sessionUsername.c_str(), 31);
+
+    sockaddr_in dest{};
+    dest.sin_family      = AF_INET;
+    dest.sin_addr.s_addr = INADDR_BROADCAST;
+    dest.sin_port        = htons(SESSION_PORT);
+    sendto((SOCKET)m_sessionSock, (char*)&pkt, (int)sizeof(pkt), 0,
+           (sockaddr*)&dest, (int)sizeof(dest));
+}
+
+static constexpr float CHECK_DURATION = 1.5f; // listen window for duplicate check
+
+void NetworkManager::BeginUsernameCheck(const std::string& username) {
+    // Close any previous check socket
+    if (m_checkSock != SOCK_NONE) {
+        closesocket((SOCKET)m_checkSock);
+        m_checkSock = SOCK_NONE;
+    }
+
+    m_checkUsername = username;
+    m_checkTimer   = 0.f;
+    m_checkDone    = false;
+    m_checkFound   = false;
+
+    SOCKET s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s == INVALID_SOCKET) { m_checkDone = true; return; }
+
+    MakeNonBlocking(s);
+    int reuse = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse));
+
+    sockaddr_in addr{};
+    addr.sin_family      = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port        = htons(SESSION_PORT);
+
+    if (bind(s, (sockaddr*)&addr, sizeof(addr)) != 0) {
+        closesocket(s);
+        m_checkDone = true;
+        return;
+    }
+
+    m_checkSock = (uintptr_t)s;
+}
+
+void NetworkManager::UpdateUsernameCheck(float dt) {
+    if (m_checkDone || m_checkSock == SOCK_NONE) return;
+
+    m_checkTimer += dt;
+
+    // Drain all pending session packets (non-blocking)
+    SessionPacket pkt;
+    sockaddr_in from{};
+    int fromLen;
+
+    while (true) {
+        fromLen = sizeof(from);
+        int r = recvfrom((SOCKET)m_checkSock, (char*)&pkt, (int)sizeof(pkt), 0,
+                         (sockaddr*)&from, &fromLen);
+        if (r != sizeof(pkt)) break;
+        if (pkt.magic != SESSION_MAGIC) continue;
+        pkt.username[31] = '\0';
+        if (m_checkUsername == pkt.username) {
+            m_checkFound = true;
+            break;
+        }
+    }
+
+    // Finish early if found, or after the listen window expires
+    if (m_checkFound || m_checkTimer >= CHECK_DURATION) {
+        closesocket((SOCKET)m_checkSock);
+        m_checkSock = SOCK_NONE;
+        m_checkDone = true;
+    }
+}
+
+bool NetworkManager::IsUsernameCheckDone() const { return m_checkDone; }
+bool NetworkManager::WasUsernameFound()    const { return m_checkFound; }

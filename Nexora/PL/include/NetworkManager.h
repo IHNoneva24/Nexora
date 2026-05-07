@@ -45,9 +45,13 @@ public:
     // ── Shared messaging (once connected) ─────────────────────────────────────
     void SendCharacterData(const CharacterData& data);  // call right after connect
     bool PollRemoteCharacterData(CharacterData& out);   // returns true once per receive
+    void SendUsername(const std::string& username);      // send our username to remote
+    bool PollRemoteUsername(std::string& out);           // returns true once per receive
+    const std::string& GetRemoteUsername() const { return m_remoteUsername; }
     void SendStartGame();       // host → client
     bool PollStartGame();       // client polls; returns true once
     bool PollDisconnected();    // both sides; returns true once when remote drops
+    void DisconnectClient();    // host kicks the connected client
 
     // ── Per-frame tick ────────────────────────────────────────────────────────
     void Update(float dt);
@@ -58,12 +62,23 @@ public:
 
     const std::string& GetGameName() const { return m_gameName; }
 
+    // ── Session presence (duplicate-login prevention) ─────────────────────────
+    void StartSessionBroadcast(const std::string& username);
+    void StopSessionBroadcast();
+
+    // Non-blocking duplicate-login check (call over multiple frames):
+    void BeginUsernameCheck(const std::string& username); // open listener
+    bool IsUsernameCheckDone() const;   // true once listen window elapsed
+    bool WasUsernameFound() const;      // result (only valid after done)
+    void UpdateUsernameCheck(float dt); // call each frame while checking
+
 private:
     void BroadcastAnnounce();
     void PollDiscoveryPackets(float dt);
     void TryAcceptClient();
     void PollMessages();      // drains TCP stream and dispatches by message type
     void HandleDisconnect();  // cleans up game socket; host resumes broadcasting
+    void BroadcastSession();  // sends session presence packet
 
     NetRole   m_role      = NetRole::None;
     bool      m_connected = false;
@@ -71,7 +86,9 @@ private:
     bool      m_startGameReceived    = false;
     bool      m_remoteCharReceived   = false;
     bool      m_remoteDisconnected   = false;
+    bool      m_remoteUsernameReceived = false;
     CharacterData m_remoteChar       = {};
+    std::string   m_remoteUsername;
 
     // Winsock SOCKET stored as uintptr_t to keep winsock out of the header.
     static constexpr uintptr_t SOCK_NONE = ~uintptr_t(0);
@@ -89,4 +106,16 @@ private:
     };
     std::vector<DiscoveredEntry> m_entries;
     std::vector<DiscoveredGame>  m_publicList;
+
+    // Session presence
+    uintptr_t   m_sessionSock      = SOCK_NONE;
+    std::string m_sessionUsername;
+    float       m_sessionTimer     = 0.f;
+
+    // Non-blocking duplicate-login check state
+    uintptr_t   m_checkSock        = SOCK_NONE;
+    std::string m_checkUsername;
+    float       m_checkTimer       = 0.f;
+    bool        m_checkDone        = false;
+    bool        m_checkFound       = false;
 };

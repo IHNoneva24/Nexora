@@ -155,7 +155,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     Rectangle siRect = { (float)sw - siW - 16.f, 22.f, siW, siH };
 
     if (UI::Button(siRect, siLabel, m_font, 18.f)) {
-        if (auth.IsLoggedIn()) auth.Logout();
+        if (auth.IsLoggedIn()) { net.StopSessionBroadcast(); auth.Logout(); }
         else                   next = ScreenID::Login;
     }
 

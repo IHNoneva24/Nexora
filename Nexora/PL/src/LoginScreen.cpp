@@ -9,10 +9,10 @@ void LoginScreen::Load(const std::string& assetRoot, Font font) {
 void LoginScreen::Unload() { m_bg.Unload(); }
 void LoginScreen::Reset() {
     m_username = m_password = m_errorMsg = m_successMsg = "";
-    m_focus = 0; m_msgTimer = 0.f; m_loggedIn = false;
+    m_focus = 0; m_msgTimer = 0.f; m_loggedIn = false; m_checking = false;
 }
 
-ScreenID LoginScreen::Tick(float dt, AuthService& auth) {
+ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
@@ -21,6 +21,26 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth) {
 
     // Auto-navigate after successful login display
     if (m_loggedIn && m_msgTimer <= 0.f) { Reset(); return ScreenID::MainMenu; }
+
+    // Non-blocking duplicate-login check in progress
+    if (m_checking) {
+        net.UpdateUsernameCheck(dt);
+        if (net.IsUsernameCheckDone()) {
+            m_checking = false;
+            if (net.WasUsernameFound()) {
+                auth.Logout();
+                m_errorMsg   = "This account is already logged in on your network.";
+                m_successMsg = "";
+                m_msgTimer   = 3.f;
+            } else {
+                net.StartSessionBroadcast(auth.GetUsername());
+                m_successMsg = "Welcome back, " + auth.GetUsername() + "!";
+                m_errorMsg   = "";
+                m_msgTimer   = 2.f;
+                m_loggedIn   = true;
+            }
+        }
+    }
 
     // Layout
     const float pW = 430.f, pH = 380.f;
@@ -56,13 +76,15 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth) {
 
     // Login action
     auto doLogin = [&]() {
-        if (m_loggedIn) return;
+        if (m_loggedIn || m_checking) return;
         std::string err = auth.Login(m_username, m_password);
         if (err.empty()) {
-            m_successMsg = "Welcome back, " + auth.GetUsername() + "!";
-            m_errorMsg   = "";
-            m_msgTimer   = 2.f;
-            m_loggedIn   = true;
+            // Start non-blocking duplicate-login check
+            net.BeginUsernameCheck(auth.GetUsername());
+            m_checking   = true;
+            m_successMsg = "";
+            m_errorMsg   = "Checking session...";
+            m_msgTimer   = 3.f;
         } else {
             m_errorMsg   = err;
             m_successMsg = "";
