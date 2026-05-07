@@ -203,7 +203,11 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     float siW = 160.f, siH = 38.f;
     Rectangle siRect = { (float)sw - siW - 16.f, 22.f, siW, siH };
 
+<<<<<<< HEAD
     if (UI::Button(siRect, siLabel, m_font, 18.f) && !popupOpen) {
+=======
+    if (UI::Button(siRect, siLabel, m_font, 18.f)) {
+>>>>>>> 2e1294f (Fix bugs)
         if (auth.IsLoggedIn()) { net.StopSessionBroadcast(); auth.Logout(); }
         else                   next = ScreenID::Login;
     }

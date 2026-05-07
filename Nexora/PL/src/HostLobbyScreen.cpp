@@ -169,14 +169,19 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
         CharacterRenderer::UnloadLayers(m_remoteCharLayers);
         m_charDataSent = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
         m_remoteUsername.clear();
 =======
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+        m_remoteUsername.clear();
+>>>>>>> 2e1294f (Fix bugs)
         // net already resumed broadcasting inside HandleDisconnect
     }
 
     bool joined = net.IsClientConnected();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     // When client first connects: exchange character data and username
     if (joined && !m_charDataSent) {
@@ -197,9 +202,19 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
         m_remoteCharData = remoteData;
 =======
     // When client first connects: exchange character data
+=======
+    // When client first connects: exchange character data and username
+>>>>>>> 2e1294f (Fix bugs)
     if (joined && !m_charDataSent) {
         net.SendCharacterData(m_myCharData);
+        net.SendUsername(m_hostName);
         m_charDataSent = true;
+    }
+
+    // Receive client's username
+    std::string incomingUser;
+    if (net.PollRemoteUsername(incomingUser)) {
+        m_remoteUsername = incomingUser;
     }
 
     // Receive client's character data as soon as it arrives
@@ -225,7 +240,7 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
 =======
     DrawPlatform(leftCX, platY, platW, platH);
     CharacterRenderer::Draw(m_charLayers, leftCX, platY, charH);
-    UI::LabelC("YOU", leftCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+    UI::LabelC(m_hostName, leftCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
 
     // Right — client slot
     DrawPlatform(rightCX, platY, platW, platH);
@@ -256,6 +271,7 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
                           { 180, 160, 100, 60 });
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::string clientLabel = m_remoteUsername.empty() ? "Player 2" : m_remoteUsername;
         DrawNameTag(clientLabel, rightCX, platY + rYOff - charH);
         UI::LabelC(clientLabel + " connected!", rightCX, platY - charH - 28.f,
@@ -266,6 +282,11 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
 =======
         UI::LabelC("Player 2", rightCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
         UI::LabelC("Player connected!", rightCX, platY - charH - 28.f,
+=======
+        std::string clientLabel = m_remoteUsername.empty() ? "Player 2" : m_remoteUsername;
+        UI::LabelC(clientLabel, rightCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+        UI::LabelC(clientLabel + " connected!", rightCX, platY - charH - 28.f,
+>>>>>>> 2e1294f (Fix bugs)
                    18.f, UI::C_TEXT_OK, m_font);
     }
 

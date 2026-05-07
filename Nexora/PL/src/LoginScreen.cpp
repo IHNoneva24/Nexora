@@ -90,6 +90,7 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
 
     // Login action
     auto doLogin = [&]() {
+<<<<<<< HEAD
         try {
             if (m_loggedIn || m_checking) return;
             std::string err = auth.Login(m_username, m_password);
@@ -107,6 +108,19 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
             }
         } catch (...) {
             m_errorMsg   = "An unexpected error occurred.";
+=======
+        if (m_loggedIn || m_checking) return;
+        std::string err = auth.Login(m_username, m_password);
+        if (err.empty()) {
+            // Start non-blocking duplicate-login check
+            net.BeginUsernameCheck(auth.GetUsername());
+            m_checking   = true;
+            m_successMsg = "";
+            m_errorMsg   = "Checking session...";
+            m_msgTimer   = 3.f;
+        } else {
+            m_errorMsg   = err;
+>>>>>>> 2e1294f (Fix bugs)
             m_successMsg = "";
             m_msgTimer   = 3.f;
         }

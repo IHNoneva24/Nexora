@@ -62,9 +62,12 @@ private:
     CharacterData          m_remoteCharData = {};
     bool                   m_charDataSent   = false;
     std::string            m_remoteUsername;    // received from client
+<<<<<<< HEAD
 =======
     bool                   m_charDataSent   = false;
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+>>>>>>> 2e1294f (Fix bugs)
     std::vector<Texture2D> m_charLayers;       // host's own layers
     std::vector<Texture2D> m_remoteCharLayers; // client's layers (received over network)
 };

@@ -59,7 +59,12 @@ private:
     Font        m_font     = {};
     std::string m_assetRoot;
     std::string m_gameName;
+<<<<<<< HEAD
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+    std::string m_myUsername;      // our logged-in username
+    std::string m_remoteUsername;  // host's username (received over network)
+>>>>>>> 2e1294f (Fix bugs)
 
     std::vector<Texture2D> m_charLayers;        // our own character
     std::vector<Texture2D> m_remoteCharLayers;  // host's character (received over network)

@@ -2,7 +2,11 @@
 #include "raylib.h"
 #include "enum.h"
 #include "UIHelpers.h"
+<<<<<<< HEAD
 #include "../../BLL/include/NetworkManager.h"
+=======
+#include "NetworkManager.h"
+>>>>>>> 2e1294f (Fix bugs)
 #include "../../BLL/include/AuthService.h"
 #include <string>
 

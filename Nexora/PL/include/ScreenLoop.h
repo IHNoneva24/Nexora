@@ -66,8 +66,12 @@ inline ScreenID TickCurrentScreen(
         case ScreenID::Login:           next = login.Tick(dt, auth, net);             break;
 =======
         case ScreenID::MainMenu:        next = mainMenu.Tick(dt, auth, charSvc, net); break;
+<<<<<<< HEAD
         case ScreenID::Login:           next = login.Tick(dt, auth);                  break;
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+        case ScreenID::Login:           next = login.Tick(dt, auth, net);              break;
+>>>>>>> 2e1294f (Fix bugs)
         case ScreenID::Register:        next = reg.Tick(dt, auth);                    break;
         case ScreenID::HowToPlay:       next = howToPlay.Tick(dt);                    break;
         case ScreenID::CharacterCreate: next = charCreator.Tick(dt, charSvc);         break;

@@ -27,12 +27,18 @@ void JoinLobbyScreen::Unload() {
 void JoinLobbyScreen::Enter(AuthService& auth, CharacterService& charSvc,
                              const std::string& gameName, NetworkManager& net) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_gameName       = gameName;
     m_myUsername     = auth.GetUsername();
     m_remoteUsername.clear();
 =======
     m_gameName = gameName;
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+    m_gameName       = gameName;
+    m_myUsername     = auth.GetUsername();
+    m_remoteUsername.clear();
+>>>>>>> 2e1294f (Fix bugs)
 
     CharacterRenderer::UnloadLayers(m_charLayers);
     CharacterRenderer::UnloadLayers(m_remoteCharLayers);
@@ -46,9 +52,13 @@ void JoinLobbyScreen::Enter(AuthService& auth, CharacterService& charSvc,
         net.SendUsername(m_myUsername);
 =======
         m_charLayers = CharacterRenderer::LoadLayers(data, m_assetRoot);
-        // Send our character data to the host immediately
+        // Send our character data and username to the host immediately
         net.SendCharacterData(data);
+<<<<<<< HEAD
 >>>>>>> 3fe0748 (Add multiplayer)
+=======
+        net.SendUsername(m_myUsername);
+>>>>>>> 2e1294f (Fix bugs)
     }
 }
 
@@ -131,12 +141,16 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2e1294f (Fix bugs)
     // Receive host's username
     std::string incomingUser;
     if (net.PollRemoteUsername(incomingUser)) {
         m_remoteUsername = incomingUser;
     }
 
+<<<<<<< HEAD
     // Left — host character
     {
         bool  lFemale = (m_remoteCharData.gender == 1);
@@ -167,6 +181,8 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
     // Waiting message
     UI::LabelC("Waiting for host to start...", cx, (float)sh * .88f, 20.f, UI::C_TEXT_DIM, m_font);
 =======
+=======
+>>>>>>> 2e1294f (Fix bugs)
     // Left — host character
     DrawPlatform(leftCX, platY, platW, platH);
     if (!m_remoteCharLayers.empty()) {
@@ -177,12 +193,13 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
         DrawRectangle((int)(leftCX - gW * .5f), (int)(platY - gH), (int)gW, (int)gH,
                       { 180, 160, 100, 60 });
     }
-    UI::LabelC("HOST", leftCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+    std::string hostLabel = m_remoteUsername.empty() ? "Host" : m_remoteUsername;
+    UI::LabelC(hostLabel, leftCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
 
     // Right — our character
     DrawPlatform(rightCX, platY, platW, platH);
     CharacterRenderer::Draw(m_charLayers, rightCX, platY, charH);
-    UI::LabelC("YOU", rightCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
+    UI::LabelC(m_myUsername, rightCX, platY + platH + 8.f, 16.f, UI::C_TEXT_DIM, m_font);
 
     DrawLineEx({ cx, areaTop + 10.f }, { cx, areaBottom - 10.f }, 1, { 80,60,20,120 });
 
