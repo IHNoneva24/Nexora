@@ -3,6 +3,7 @@
 #include "enum.h"
 #include "UIHelpers.h"
 #include "NetworkManager.h"
+#include "GameContext.h"
 #include "../../BLL/include/AuthService.h"
 #include "../../BLL/include/CharacterService.h"
 #include "../../DL/include/CharacterData.h"
@@ -16,6 +17,11 @@ public:
 
     void Enter(AuthService& auth, CharacterService& charSvc);
     ScreenID Tick(float dt, NetworkManager& net);
+
+    void FillGameContext(GameContext& ctx) const {
+        ctx.myChar     = m_myCharData;
+        ctx.remoteChar = m_remoteCharData;
+    }
 
 private:
     enum class SubState { Naming, Lobby };
@@ -33,6 +39,7 @@ private:
     bool          m_nameActive = true;
 
     CharacterData          m_myCharData     = {};
+    CharacterData          m_remoteCharData = {};
     bool                   m_charDataSent   = false;
     std::string            m_remoteUsername;    // received from client
     std::vector<Texture2D> m_charLayers;       // host's own layers

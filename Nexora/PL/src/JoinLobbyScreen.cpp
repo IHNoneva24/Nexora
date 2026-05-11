@@ -23,8 +23,8 @@ void JoinLobbyScreen::Enter(AuthService& auth, CharacterService& charSvc,
 
     CharacterData data;
     if (charSvc.Load(auth.GetUserId(), data)) {
+        m_myCharData = data;
         m_charLayers = CharacterRenderer::LoadLayers(data, m_assetRoot);
-        // Send our character data and username to the host immediately
         net.SendCharacterData(data);
         net.SendUsername(m_myUsername);
     }
@@ -72,6 +72,7 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
     // Receive host's character data when it arrives
     CharacterData remoteData;
     if (net.PollRemoteCharacterData(remoteData)) {
+        m_remoteCharData = remoteData;
         CharacterRenderer::UnloadLayers(m_remoteCharLayers);
         m_remoteCharLayers = CharacterRenderer::LoadLayers(remoteData, m_assetRoot);
     }
@@ -114,9 +115,9 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
         return ScreenID::MainMenu;
     }
 
-    // Host pressed START GAME — both players transition
+    // Host pressed START GAME — both players transition to question creation
     if (net.PollStartGame())
-        return ScreenID::Game;
+        return ScreenID::QuestionCreate;
 
     return ScreenID::JoinLobby;
 }

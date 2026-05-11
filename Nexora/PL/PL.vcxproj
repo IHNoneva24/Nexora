@@ -30,6 +30,8 @@
     <ClCompile Include="src\HostLobbyScreen.cpp" />
     <ClCompile Include="src\JoinLobbyScreen.cpp" />
     <ClCompile Include="src\NetworkManager.cpp" />
+    <ClCompile Include="src\QuestionCreateScreen.cpp" />
+    <ClCompile Include="src\GameScreen.cpp" />
   </ItemGroup>
 
   <!-- PL headers only -->
@@ -47,6 +49,9 @@
     <ClInclude Include="include\HostLobbyScreen.h" />
     <ClInclude Include="include\JoinLobbyScreen.h" />
     <ClInclude Include="include\NetworkManager.h" />
+    <ClInclude Include="include\QuestionCreateScreen.h" />
+    <ClInclude Include="include\GameScreen.h" />
+    <ClInclude Include="include\GameContext.h" />
     <ClInclude Include="include\screen.h" />
   </ItemGroup>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "../../DL/include/CharacterData.h"
+#include "../../BLL/include/QuestionData.h"
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -51,6 +52,12 @@ public:
     void SendStartGame();       // host → client
     bool PollStartGame();       // client polls; returns true once
     bool PollDisconnected();    // both sides; returns true once when remote drops
+
+    void SendQuestions(const std::vector<QuestionData>& questions);
+    bool PollRemoteQuestions(std::vector<QuestionData>& out);
+
+    void SendAnswer(int answerIdx);           // 0-3
+    bool PollRemoteAnswer(int& out);          // returns true once per receive
     void DisconnectClient();    // host kicks the connected client
 
     // ── Per-frame tick ────────────────────────────────────────────────────────
@@ -86,9 +93,13 @@ private:
     bool      m_startGameReceived    = false;
     bool      m_remoteCharReceived   = false;
     bool      m_remoteDisconnected   = false;
-    bool      m_remoteUsernameReceived = false;
+    bool      m_remoteUsernameReceived  = false;
+    bool      m_remoteQuestionsReceived = false;
+    bool      m_remoteAnswerReceived    = false;
+    int       m_remoteAnswer            = -1;
     CharacterData m_remoteChar       = {};
     std::string   m_remoteUsername;
+    std::vector<QuestionData> m_remoteQuestions;
 
     // Winsock SOCKET stored as uintptr_t to keep winsock out of the header.
     static constexpr uintptr_t SOCK_NONE = ~uintptr_t(0);

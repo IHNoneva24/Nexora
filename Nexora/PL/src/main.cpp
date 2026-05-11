@@ -2,6 +2,7 @@
 #include "../include/enum.h"
 #include "../include/ScreenLoop.h"
 #include "../include/NetworkManager.h"
+#include "../include/GameContext.h"
 #include "../../DL/include/Database.h"
 #include "../../DL/include/UserRepository.h"
 #include "../../DL/include/CharacterRepository.h"
@@ -30,6 +31,9 @@ int main() {
     // Networking
     NetworkManager net;
 
+    // Shared game context (populated by lobby/question screens before game starts)
+    GameContext ctx;
+
     // Screens
     MainMenuScreen         mainMenu;
     LoginScreen            login;
@@ -38,6 +42,8 @@ int main() {
     CharacterCreatorScreen charCreator;
     HostLobbyScreen        hostLobby;
     JoinLobbyScreen        joinLobby;
+    QuestionCreateScreen   questionCreate;
+    GameScreen             gameScreen;
 
     mainMenu.Load(assetRoot, font);
     login.Load(assetRoot, font);
@@ -46,6 +52,8 @@ int main() {
     charCreator.Load(assetRoot, font);
     hostLobby.Load(assetRoot, font);
     joinLobby.Load(assetRoot, font);
+    questionCreate.Load(assetRoot, font);
+    gameScreen.Load(assetRoot, font);
 
     ScreenID current = ScreenID::MainMenu;
     ScreenID prev    = ScreenID::MainMenu;
@@ -54,10 +62,8 @@ int main() {
     while (!WindowShouldClose() && running) {
         float dt = GetFrameTime();
 
-        // Network tick (broadcasts, accepts, discovery) — always runs
         net.Update(dt);
 
-        // Call Enter when transitioning into a screen that needs it
         if (current != prev) {
             if (current == ScreenID::CharacterCreate)
                 charCreator.Enter(auth.GetUserId(), charSvc);
@@ -65,6 +71,17 @@ int main() {
                 hostLobby.Enter(auth, charSvc);
             if (current == ScreenID::JoinLobby)
                 joinLobby.Enter(auth, charSvc, mainMenu.GetJoinedGameName(), net);
+            if (current == ScreenID::QuestionCreate) {
+                // Save character data from whichever lobby we came from
+                if (prev == ScreenID::HostLobby) hostLobby.FillGameContext(ctx);
+                else                              joinLobby.FillGameContext(ctx);
+                questionCreate.Enter(net);
+            }
+            if (current == ScreenID::Game) {
+                // Save questions from the question creation phase
+                questionCreate.FillGameContext(ctx);
+                gameScreen.Enter(ctx, net);
+            }
         }
 
         BeginDrawing();
@@ -73,7 +90,7 @@ int main() {
         ScreenID next = TickCurrentScreen(
             current, dt,
             mainMenu, login, reg, howToPlay, charCreator,
-            hostLobby, joinLobby, net,
+            hostLobby, joinLobby, questionCreate, gameScreen, net,
             auth, charSvc, running);
 
         EndDrawing();
@@ -90,6 +107,8 @@ int main() {
     charCreator.Unload();
     hostLobby.Unload();
     joinLobby.Unload();
+    questionCreate.Unload();
+    gameScreen.Unload();
     UnloadFont(font);
     CloseWindow();
     return 0;

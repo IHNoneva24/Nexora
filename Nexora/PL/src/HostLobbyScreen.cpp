@@ -133,6 +133,7 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     // Receive client's character data as soon as it arrives
     CharacterData remoteData;
     if (net.PollRemoteCharacterData(remoteData)) {
+        m_remoteCharData = remoteData;
         CharacterRenderer::UnloadLayers(m_remoteCharLayers);
         m_remoteCharLayers = CharacterRenderer::LoadLayers(remoteData, m_assetRoot);
     }
@@ -182,7 +183,7 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     if (joined) {
         if (UI::Button({ (float)sw - btnW - 20.f, btnY, btnW, btnH }, "START GAME", m_font, 20.f)) {
             net.SendStartGame();
-            return ScreenID::Game;
+            return ScreenID::QuestionCreate;
         }
     } else {
         UI::ButtonDisabled({ (float)sw - btnW - 20.f, btnY, btnW, btnH }, "START GAME", m_font, 20.f);

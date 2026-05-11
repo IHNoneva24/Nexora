@@ -62,11 +62,15 @@ void NetworkManager::Shutdown() {
     m_role               = NetRole::None;
     m_connected          = false;
     m_gamePort           = 0;
-    m_startGameReceived  = false;
-    m_remoteCharReceived     = false;
-    m_remoteUsernameReceived = false;
-    m_remoteChar             = {};
+    m_startGameReceived         = false;
+    m_remoteCharReceived        = false;
+    m_remoteUsernameReceived    = false;
+    m_remoteQuestionsReceived   = false;
+    m_remoteAnswerReceived      = false;
+    m_remoteAnswer              = -1;
+    m_remoteChar                = {};
     m_remoteUsername.clear();
+    m_remoteQuestions.clear();
     m_announceTimer          = 0.f;
     m_entries.clear();
     m_publicList.clear();
@@ -327,7 +331,64 @@ void NetworkManager::SendStartGame() {
 }
 
 bool NetworkManager::PollStartGame() {
-    return m_startGameReceived;
+    if (!m_startGameReceived) return false;
+    m_startGameReceived = false;
+    return true;
+}
+
+// Message type 0x05 — Questions batch
+// Per question (391 bytes): type(1) text(129) choice0(65) choice1(65) choice2(65) choice3(65) correctIdx(1)
+static constexpr int QN_TEXT_SIZE   = 129;
+static constexpr int QN_CHOICE_SIZE = 65;
+static constexpr int QN_ENTRY_SIZE  = 1 + QN_TEXT_SIZE + 4 * QN_CHOICE_SIZE + 1; // 391
+
+void NetworkManager::SendQuestions(const std::vector<QuestionData>& questions) {
+    if (!m_connected || m_gameSock == SOCK_NONE) return;
+
+    uint8_t count = (uint8_t)questions.size();
+    int totalSize = 2 + count * QN_ENTRY_SIZE;
+    std::vector<uint8_t> buf(totalSize, 0);
+    buf[0] = 0x05;
+    buf[1] = count;
+
+    for (int i = 0; i < (int)count; ++i) {
+        const QuestionData& q = questions[i];
+        uint8_t* p = buf.data() + 2 + i * QN_ENTRY_SIZE;
+        p[0] = (uint8_t)q.type;
+        strncpy_s((char*)(p + 1), QN_TEXT_SIZE, q.text.c_str(), QN_TEXT_SIZE - 1);
+        for (int c = 0; c < 4; ++c)
+            strncpy_s((char*)(p + 1 + QN_TEXT_SIZE + c * QN_CHOICE_SIZE),
+                      QN_CHOICE_SIZE, q.choices[c].c_str(), QN_CHOICE_SIZE - 1);
+        p[QN_ENTRY_SIZE - 1] = (uint8_t)q.correctIdx;
+    }
+
+    int sent = 0;
+    while (sent < totalSize) {
+        int r = send((SOCKET)m_gameSock, (char*)buf.data() + sent, totalSize - sent, 0);
+        if (r <= 0) break;
+        sent += r;
+    }
+}
+
+bool NetworkManager::PollRemoteQuestions(std::vector<QuestionData>& out) {
+    if (!m_remoteQuestionsReceived) return false;
+    m_remoteQuestionsReceived = false;
+    out = std::move(m_remoteQuestions);
+    m_remoteQuestions.clear();
+    return true;
+}
+
+void NetworkManager::SendAnswer(int answerIdx) {
+    if (!m_connected || m_gameSock == SOCK_NONE) return;
+    uint8_t buf[2] = { 0x06, (uint8_t)answerIdx };
+    send((SOCKET)m_gameSock, (char*)buf, 2, 0);
+}
+
+bool NetworkManager::PollRemoteAnswer(int& out) {
+    if (!m_remoteAnswerReceived) return false;
+    m_remoteAnswerReceived = false;
+    out = m_remoteAnswer;
+    return true;
 }
 
 bool NetworkManager::PollDisconnected() {
@@ -343,11 +404,15 @@ void NetworkManager::HandleDisconnect() {
     }
     m_connected              = false;
     m_remoteDisconnected     = true;
-    m_startGameReceived      = false;
-    m_remoteCharReceived     = false;
-    m_remoteUsernameReceived = false;
-    m_remoteChar             = {};
+    m_startGameReceived         = false;
+    m_remoteCharReceived        = false;
+    m_remoteUsernameReceived    = false;
+    m_remoteQuestionsReceived   = false;
+    m_remoteAnswerReceived      = false;
+    m_remoteAnswer              = -1;
+    m_remoteChar                = {};
     m_remoteUsername.clear();
+    m_remoteQuestions.clear();
     m_announceTimer          = ANNOUNCE_INTERVAL; // host will broadcast again immediately
 }
 
@@ -396,6 +461,33 @@ void NetworkManager::PollMessages() {
             buf[32] = '\0';
             m_remoteUsername = (const char*)(buf + 1);
             m_remoteUsernameReceived = true;
+        } else if (type == 0x05) {
+            if (avail < 2) break;
+            uint8_t header[2];
+            recv(s, (char*)header, 2, MSG_PEEK);
+            uint8_t count = header[1];
+            int expected = 2 + count * QN_ENTRY_SIZE;
+            if ((int)avail < expected) break;
+            std::vector<uint8_t> qbuf(expected);
+            recv(s, (char*)qbuf.data(), expected, 0);
+            m_remoteQuestions.clear();
+            for (int i = 0; i < (int)count; ++i) {
+                const uint8_t* p = qbuf.data() + 2 + i * QN_ENTRY_SIZE;
+                QuestionData q;
+                q.type       = (QuestionData::Type)p[0];
+                q.text       = (char*)(p + 1);
+                for (int c = 0; c < 4; ++c)
+                    q.choices[c] = (char*)(p + 1 + QN_TEXT_SIZE + c * QN_CHOICE_SIZE);
+                q.correctIdx = p[QN_ENTRY_SIZE - 1];
+                m_remoteQuestions.push_back(q);
+            }
+            m_remoteQuestionsReceived = true;
+        } else if (type == 0x06) {
+            if (avail < 2) break;
+            uint8_t buf[2];
+            recv(s, (char*)buf, 2, 0);
+            m_remoteAnswer         = buf[1];
+            m_remoteAnswerReceived = true;
         } else {
             recv(s, (char*)&type, 1, 0);
         }

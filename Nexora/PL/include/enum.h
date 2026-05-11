@@ -8,6 +8,7 @@ enum class ScreenID {
     CharacterCreate,
     HostLobby,
     JoinLobby,
+    QuestionCreate,
     Game,
     Exit
 };
