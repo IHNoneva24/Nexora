@@ -5,6 +5,21 @@
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
+=======
+static void FlipLayersHorizontal(std::vector<Texture2D>& layers) {
+    for (auto& tex : layers) {
+        if (tex.id == 0) continue;
+        Image img = LoadImageFromTexture(tex);
+        ImageFlipHorizontal(&img);
+        UnloadTexture(tex);
+        tex = LoadTextureFromImage(img);
+        SetTextureFilter(tex, TEXTURE_FILTER_POINT);
+        UnloadImage(img);
+    }
+}
+
+>>>>>>> a71f47d (Add game)
 static void DrawSword(Texture2D tex, float cx, float platformY, float charH,
                       bool flipped, float angle, Color tint) {
     if (tex.id == 0) return;
@@ -21,6 +36,7 @@ static void DrawSword(Texture2D tex, float cx, float platformY, float charH,
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 void GameScreen::Load(const std::string& assetRoot, Font font) {
+<<<<<<< HEAD
     m_assetRoot  = assetRoot;
     m_font       = font;
     m_background = LoadTexture((assetRoot + "/background3.png").c_str());
@@ -28,12 +44,20 @@ void GameScreen::Load(const std::string& assetRoot, Font font) {
 
 void GameScreen::Unload() {
     UnloadTexture(m_background);
+=======
+    m_assetRoot = assetRoot;
+    m_font      = font;
+}
+
+void GameScreen::Unload() {
+>>>>>>> a71f47d (Add game)
     CharacterRenderer::UnloadLayers(m_leftLayers);
     CharacterRenderer::UnloadLayers(m_rightLayers);
     if (m_leftSword.id)  { UnloadTexture(m_leftSword);  m_leftSword  = {}; }
     if (m_rightSword.id) { UnloadTexture(m_rightSword); m_rightSword = {}; }
 }
 
+<<<<<<< HEAD
 void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
     m_role       = net.GetRole();
     m_roundIdx   = 0;
@@ -48,6 +72,28 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
         m_hostQuestions   = ctx.remoteQuestions;
         m_clientQuestions = ctx.myQuestions;
     }
+=======
+void GameScreen::BuildQuestionList(const GameContext& ctx, NetRole role) {
+    // Both sides agree: even slots = host questions, odd slots = client questions
+    const auto& hostQ   = (role == NetRole::Host) ? ctx.myQuestions     : ctx.remoteQuestions;
+    const auto& clientQ = (role == NetRole::Host) ? ctx.remoteQuestions : ctx.myQuestions;
+
+    m_questions.clear();
+    int n = (int)std::min(hostQ.size(), clientQ.size());
+    for (int i = 0; i < n; ++i) {
+        m_questions.push_back(hostQ[i]);
+        m_questions.push_back(clientQ[i]);
+    }
+}
+
+void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
+    m_role       = net.GetRole();
+    m_qIdx       = 0;
+    m_scoreLeft  = 0;
+    m_scoreRight = 0;
+
+    BuildQuestionList(ctx, m_role);
+>>>>>>> a71f47d (Add game)
 
     CharacterRenderer::UnloadLayers(m_leftLayers);
     CharacterRenderer::UnloadLayers(m_rightLayers);
@@ -60,6 +106,12 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
         std::swap(m_leftLayers, m_rightLayers);
     }
 
+<<<<<<< HEAD
+=======
+    // Pre-flip left character so it faces right (toward opponent)
+    FlipLayersHorizontal(m_leftLayers);
+
+>>>>>>> a71f47d (Add game)
     // Load sword textures
     const std::string hand  = m_assetRoot + "/GandalfHardcore Character Asset Pack/";
     bool leftFemale  = (m_role == NetRole::Host) ? (ctx.myChar.gender == 1)
@@ -74,8 +126,21 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
                                                     : "Male Hand/Male Sword.png")).c_str());
     if (m_leftSword.id)  SetTextureFilter(m_leftSword,  TEXTURE_FILTER_POINT);
     if (m_rightSword.id) SetTextureFilter(m_rightSword, TEXTURE_FILTER_POINT);
+<<<<<<< HEAD
     m_leftFemale  = leftFemale;
     m_rightFemale = rightFemale;
+=======
+
+    // Pre-flip left sword to match the pre-flipped character
+    if (m_leftSword.id) {
+        Image img = LoadImageFromTexture(m_leftSword);
+        ImageFlipHorizontal(&img);
+        UnloadTexture(m_leftSword);
+        m_leftSword = LoadTextureFromImage(img);
+        SetTextureFilter(m_leftSword, TEXTURE_FILTER_POINT);
+        UnloadImage(img);
+    }
+>>>>>>> a71f47d (Add game)
 
     StartRound();
 }
@@ -92,6 +157,7 @@ void GameScreen::StartRound() {
     m_shakeTimer   = 0.f;
     m_shakeTarget  = -1;
     m_roundWinner  = -1;
+<<<<<<< HEAD
     m_leftCorrect  = false;
     m_rightCorrect = false;
 }
@@ -118,6 +184,29 @@ void GameScreen::EvaluateRound() {
         m_roundWinner = 1; // client attacks
     } else {
         m_roundWinner = -1; // draw (both correct or both wrong)
+=======
+}
+
+void GameScreen::EvaluateRound() {
+    if (m_qIdx >= (int)m_questions.size()) return;
+    const QuestionData& q = m_questions[m_qIdx];
+
+    // Determine who is left (host) and who is right (client)
+    int leftAnswer  = (m_role == NetRole::Host) ? m_myAnswer     : m_remoteAnswer;
+    int rightAnswer = (m_role == NetRole::Host) ? m_remoteAnswer : m_myAnswer;
+
+    bool leftCorrect  = (leftAnswer  == q.correctIdx);
+    bool rightCorrect = (rightAnswer == q.correctIdx);
+
+    if (leftCorrect && !rightCorrect) {
+        m_roundWinner = 0;
+        m_scoreLeft++;
+    } else if (rightCorrect && !leftCorrect) {
+        m_roundWinner = 1;
+        m_scoreRight++;
+    } else {
+        m_roundWinner = -1; // draw
+>>>>>>> a71f47d (Add game)
     }
 
     m_phase     = Phase::ShowResult;
@@ -148,12 +237,21 @@ Color GameScreen::CharTint(int playerIdx) const {
 }
 
 void GameScreen::DrawBackground(int sw, int sh) const {
+<<<<<<< HEAD
     if (m_background.id != 0)
         DrawTexturePro(m_background,
             { 0, 0, (float)m_background.width, (float)m_background.height },
             { 0, 0, (float)sw, (float)sh }, { 0, 0 }, 0.f, WHITE);
     else
         DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
+=======
+    DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
+    // subtle arena floor gradient
+    for (int i = 0; i < 80; ++i) {
+        float alpha = (float)i / 80.f * 40.f;
+        DrawRectangle(0, sh - 80 + i, sw, 1, { 60, 45, 20, (unsigned char)alpha });
+    }
+>>>>>>> a71f47d (Add game)
     // centre divider
     float cx = (float)sw * 0.5f;
     DrawLineEx({ cx, 90.f }, { cx, (float)sh - 60.f }, 1, { 80, 60, 20, 80 });
@@ -163,8 +261,13 @@ void GameScreen::DrawScorebar(int sw) const {
     float cx = (float)sw * 0.5f;
     std::string left  = "P1: " + std::to_string(m_scoreLeft);
     std::string right = "P2: " + std::to_string(m_scoreRight);
+<<<<<<< HEAD
     std::string qnum  = "ROUND " + std::to_string(m_roundIdx + 1) + "/" +
                          std::to_string(TOTAL_ROUNDS);
+=======
+    std::string qnum  = "Q " + std::to_string(m_qIdx + 1) + "/" +
+                         std::to_string((int)m_questions.size());
+>>>>>>> a71f47d (Add game)
 
     UI::LabelC(left,  cx - 220.f, 8.f,  22.f, UI::C_TEXT_GOLD,  m_font);
     UI::LabelC(qnum,  cx,         8.f,  18.f, UI::C_TEXT_DIM,   m_font);
@@ -173,21 +276,35 @@ void GameScreen::DrawScorebar(int sw) const {
 }
 
 void GameScreen::DrawQuestion(int sw, int sh) const {
+<<<<<<< HEAD
     if (m_roundIdx >= TOTAL_ROUNDS) return;
 
     // Each player sees the OTHER player's question
     const QuestionData& q = (m_role == NetRole::Host)
         ? m_clientQuestions[m_roundIdx]   // host answers client's question
         : m_hostQuestions[m_roundIdx];    // client answers host's question
+=======
+    if (m_qIdx >= (int)m_questions.size()) return;
+    const QuestionData& q = m_questions[m_qIdx];
+>>>>>>> a71f47d (Add game)
 
     float cx = (float)sw * 0.5f;
     float panelW = (float)sw * 0.52f;
     float panelY = 44.f;
 
+<<<<<<< HEAD
+=======
+    // Word-wrap simulation: just draw the text centered, it may overflow
+    // For now draw the question text in the upper-center panel
+>>>>>>> a71f47d (Add game)
     Rectangle panel = { cx - panelW * 0.5f, panelY, panelW, 68.f };
     UI::DrawPanel(panel);
 
     float fs = 18.f;
+<<<<<<< HEAD
+=======
+    // Simple single-line truncation for now
+>>>>>>> a71f47d (Add game)
     Vector2 sz = MeasureTextEx(m_font, q.text.c_str(), fs, 1);
     while (sz.x > panelW - 24.f && fs > 10.f) {
         fs -= 1.f;
@@ -198,12 +315,17 @@ void GameScreen::DrawQuestion(int sw, int sh) const {
 }
 
 void GameScreen::DrawAnswerChoices(int sw, int sh, bool locked) {
+<<<<<<< HEAD
     if (m_roundIdx >= TOTAL_ROUNDS) return;
 
     // Show choices from the question this player is answering
     const QuestionData& q = (m_role == NetRole::Host)
         ? m_clientQuestions[m_roundIdx]
         : m_hostQuestions[m_roundIdx];
+=======
+    if (m_qIdx >= (int)m_questions.size()) return;
+    const QuestionData& q = m_questions[m_qIdx];
+>>>>>>> a71f47d (Add game)
 
     float cx = (float)sw * 0.5f;
     int   numChoices = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
@@ -212,7 +334,11 @@ void GameScreen::DrawAnswerChoices(int sw, int sh, bool locked) {
     float gap  = 14.f;
     float totalW = numChoices * btnW + (numChoices - 1) * gap;
     float startX = cx - totalW * 0.5f;
+<<<<<<< HEAD
     float btnY   = (float)sh - btnH - 16.f;
+=======
+    float btnY   = (float)sh * 0.82f;
+>>>>>>> a71f47d (Add game)
 
     const char* choiceLabels[4] = { "A", "B", "C", "D" };
     const char* tfLabels[2]     = { "TRUE", "FALSE" };
@@ -278,17 +404,27 @@ void GameScreen::DrawAnswerChoices(int sw, int sh, bool locked) {
 }
 
 void GameScreen::DrawCharacters(int sw, int sh) const {
+<<<<<<< HEAD
     float platY   = (float)sh * 0.68f;
     float leftCX  = (float)sw * 0.20f + m_leftOffsetX;
     float rightCX = (float)sw * 0.80f + m_rightOffsetX;
 
     // Shake
+=======
+    float platY = (float)sh * 0.76f;
+    float platW = (float)sw * 0.25f;
+    float leftCX  = (float)sw * 0.20f + m_leftOffsetX;
+    float rightCX = (float)sw * 0.80f + m_rightOffsetX;
+
+    // Shake: use elapsed (not remaining) time so sin starts from 0 and oscillates visibly
+>>>>>>> a71f47d (Add game)
     float shakeOff = 0.f;
     if (m_shakeTimer > 0.f) {
         float elapsed = 0.4f - m_shakeTimer;
         shakeOff = std::sin(elapsed * 55.f) * 9.f * (m_shakeTimer / 0.4f);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     // Left character (flipped via source-rect so it faces right)
 =======
@@ -303,20 +439,41 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
         int   lFeetIdx = m_leftFemale  ? 2 : -1;
         float lYOff    = m_leftFemale  ? -14.f : 0.f;
         CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H, true, lFeetIdx, 5.f, lYOff);
+=======
+    DrawPlatform((float)sw * 0.20f, platY, platW, PLAT_H);
+    DrawPlatform((float)sw * 0.80f, platY, platW, PLAT_H);
+
+    // Left character — pre-flipped at load time so it faces RIGHT (toward opponent)
+    {
+        float cx = leftCX + (m_shakeTarget == 0 ? shakeOff : 0.f);
+        Color tint = CharTint(0);
+        CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H);
+>>>>>>> a71f47d (Add game)
         if (tint.r != 255 || tint.g != 255 || tint.b != 255) {
             float scale = CHAR_H / CharacterRenderer::FRAME_H;
             float destW = CharacterRenderer::FRAME_W * scale;
             float destH = CharacterRenderer::FRAME_H * scale;
+<<<<<<< HEAD
             Rectangle dest = { cx - destW * .5f, (platY + lYOff) - destH, destW, destH };
             DrawRectangleRec(dest, { 255, 60, 60, 80 });
         }
         if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
             if (m_roundWinner == 0) {
                 DrawSword(m_leftSword, cx + 14.f, platY, CHAR_H, true, 20.f, WHITE);
+=======
+            Rectangle dest = { cx - destW * .5f, platY - destH, destW, destH };
+            DrawRectangleRec(dest, { 255, 60, 60, 80 });
+        }
+        // Sword drawn normally — texture was pre-flipped at load time
+        if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
+            if (m_roundWinner == 0) {
+                DrawSword(m_leftSword, cx + 14.f, platY, CHAR_H, false, 20.f, WHITE);
+>>>>>>> a71f47d (Add game)
             }
         }
     }
 
+<<<<<<< HEAD
     // Right character
     {
         float cx = rightCX + (m_shakeTarget == 1 ? shakeOff : 0.f);
@@ -324,11 +481,22 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
         int   rFeetIdx = m_rightFemale ? 2 : -1;
         float rYOff    = m_rightFemale ? -14.f : 0.f;
         CharacterRenderer::Draw(m_rightLayers, cx, platY, CHAR_H, false, rFeetIdx, 5.f, rYOff);
+=======
+    // Right character — normal draw so it faces LEFT (toward opponent)
+    {
+        float cx = rightCX + (m_shakeTarget == 1 ? shakeOff : 0.f);
+        Color tint = CharTint(1);
+        CharacterRenderer::Draw(m_rightLayers, cx, platY, CHAR_H);
+>>>>>>> a71f47d (Add game)
         if (tint.r != 255 || tint.g != 255 || tint.b != 255) {
             float scale = CHAR_H / CharacterRenderer::FRAME_H;
             float destW = CharacterRenderer::FRAME_W * scale;
             float destH = CharacterRenderer::FRAME_H * scale;
+<<<<<<< HEAD
             Rectangle dest = { cx - destW * .5f, (platY + rYOff) - destH, destW, destH };
+=======
+            Rectangle dest = { cx - destW * .5f, platY - destH, destW, destH };
+>>>>>>> a71f47d (Add game)
             DrawRectangleRec(dest, { 255, 60, 60, 80 });
         }
         if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
@@ -367,6 +535,7 @@ void GameScreen::DrawResultOverlay(int sw, int sh) const {
     float cx = (float)sw * 0.5f;
     float cy = (float)sh * 0.50f;
 
+<<<<<<< HEAD
     // Show per-player result
     std::string msg;
     Color       col;
@@ -379,6 +548,13 @@ void GameScreen::DrawResultOverlay(int sw, int sh) const {
     } else {
         msg = "P2 CORRECT - P1 WRONG!"; col = UI::C_TEXT_GOLD;
     }
+=======
+    std::string msg;
+    Color       col;
+    if (m_roundWinner == 0)       { msg = "PLAYER 1 WINS!"; col = UI::C_TEXT_GOLD; }
+    else if (m_roundWinner == 1)  { msg = "PLAYER 2 WINS!"; col = UI::C_TEXT_GOLD; }
+    else                          { msg = "DRAW!";           col = UI::C_TEXT_DIM;  }
+>>>>>>> a71f47d (Add game)
 
     // Fade in
     float alpha = std::min(1.f, m_timer / 0.25f);
@@ -397,7 +573,11 @@ void GameScreen::DrawResultOverlay(int sw, int sh) const {
 
 void GameScreen::DrawGameOver(int sw, int sh, NetworkManager& net) {
     float cx = (float)sw * 0.5f;
+<<<<<<< HEAD
     DrawBackground(sw, sh);
+=======
+    DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
+>>>>>>> a71f47d (Add game)
 
     UI::LabelShadow("GAME OVER", cx, (float)sh * 0.12f, 52.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(cx - 200.f, (float)sh * 0.12f + 60.f, 400.f);
@@ -406,6 +586,13 @@ void GameScreen::DrawGameOver(int sw, int sh, NetworkManager& net) {
     UI::LabelC("FINAL SCORE", cx, py, 22.f, UI::C_TEXT_DIM, m_font);
     py += 36.f;
 
+<<<<<<< HEAD
+=======
+    auto scoreStr = [](const std::string& name, int score) {
+        return name + "  " + std::to_string(score);
+    };
+
+>>>>>>> a71f47d (Add game)
     Color leftCol  = (m_scoreLeft  > m_scoreRight) ? UI::C_TEXT_OK  :
                      (m_scoreLeft  < m_scoreRight) ? UI::C_TEXT_ERR : UI::C_TEXT_DIM;
     Color rightCol = (m_scoreRight > m_scoreLeft)  ? UI::C_TEXT_OK  :
@@ -431,6 +618,10 @@ void GameScreen::DrawGameOver(int sw, int sh, NetworkManager& net) {
                    "MAIN MENU", m_font, 22.f)) {
         net.Shutdown();
         m_phase = Phase::Answering; // reset so we don't loop
+<<<<<<< HEAD
+=======
+        // The Tick return handles transition
+>>>>>>> a71f47d (Add game)
     }
 }
 
@@ -447,7 +638,11 @@ ScreenID GameScreen::Tick(float dt, NetworkManager& net) {
     // ── Phase logic ──────────────────────────────────────────────────────────
     switch (m_phase) {
     case Phase::Answering:
+<<<<<<< HEAD
         // Player clicks an answer -> send and move to WaitRemote
+=======
+        // Player clicks an answer → send and move to WaitRemote
+>>>>>>> a71f47d (Add game)
         if (m_myAnswer >= 0 && !m_mySent) {
             net.SendAnswer(m_myAnswer);
             m_mySent = true;
@@ -469,6 +664,10 @@ ScreenID GameScreen::Tick(float dt, NetworkManager& net) {
         // ── Animation sub-state ──────────────────────────────────────────────
         if (m_roundWinner >= 0) {
             if (m_animState == AnimState::Lunge) {
+<<<<<<< HEAD
+=======
+                float dir = (m_roundWinner == 0) ? 1.f : -1.f;
+>>>>>>> a71f47d (Add game)
                 if (m_roundWinner == 0) m_leftOffsetX  += ANIM_SPEED * dt;
                 else                   m_rightOffsetX -= ANIM_SPEED * dt;
 
@@ -491,8 +690,13 @@ ScreenID GameScreen::Tick(float dt, NetworkManager& net) {
         }
 
         if (m_timer >= PHASE_SHOW_RESULT) {
+<<<<<<< HEAD
             m_roundIdx++;
             if (m_roundIdx >= TOTAL_ROUNDS) {
+=======
+            m_qIdx++;
+            if (m_qIdx >= (int)m_questions.size()) {
+>>>>>>> a71f47d (Add game)
                 m_phase = Phase::GameOver;
             } else {
                 m_phase = Phase::NextDelay;
@@ -514,6 +718,11 @@ ScreenID GameScreen::Tick(float dt, NetworkManager& net) {
     // ── Render ───────────────────────────────────────────────────────────────
     if (m_phase == Phase::GameOver) {
         DrawGameOver(sw, sh, net);
+<<<<<<< HEAD
+=======
+        // DrawGameOver sets up the "MAIN MENU" button which calls net.Shutdown()
+        // We detect it via net.GetRole() becoming None
+>>>>>>> a71f47d (Add game)
         if (net.GetRole() == NetRole::None)
             return ScreenID::MainMenu;
         return ScreenID::Game;
@@ -529,8 +738,15 @@ ScreenID GameScreen::Tick(float dt, NetworkManager& net) {
 
     // "Waiting for opponent..." hint while in WaitRemote
     if (m_phase == Phase::WaitRemote) {
+<<<<<<< HEAD
         UI::LabelC("Waiting for opponent...", (float)sw * 0.5f,
                    (float)sh * 0.73f, 18.f, UI::C_TEXT_DIM, m_font);
+=======
+        float pulse = (float)(0.55 + 0.45 * std::sin(GetTime() * 2.2));
+        Color wc = { 180, 160, 100, (unsigned char)(pulse * 200) };
+        UI::LabelC("Waiting for opponent...", (float)sw * 0.5f,
+                   (float)sh * 0.73f, 18.f, wc, m_font);
+>>>>>>> a71f47d (Add game)
     }
 
     DrawResultOverlay(sw, sh);

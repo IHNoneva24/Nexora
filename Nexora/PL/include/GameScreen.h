@@ -2,9 +2,16 @@
 #include "raylib.h"
 #include "enum.h"
 #include "UIHelpers.h"
+<<<<<<< HEAD
 #include "../../BLL/include/NetworkManager.h"
 #include "../../BLL/include/GameContext.h"
 #include "CharacterRenderer.h"
+=======
+#include "NetworkManager.h"
+#include "GameContext.h"
+#include "CharacterRenderer.h"
+#include "../../BLL/include/QuestionData.h"
+>>>>>>> a71f47d (Add game)
 #include <string>
 #include <vector>
 
@@ -28,6 +35,10 @@ private:
     // ── Anim states ──────────────────────────────────────────────────────────
     enum class AnimState { Idle, Lunge, Impact, Return };
 
+<<<<<<< HEAD
+=======
+    void BuildQuestionList(const GameContext& ctx, NetRole role);
+>>>>>>> a71f47d (Add game)
     void StartRound();
     void EvaluateRound();
     void DrawBackground(int sw, int sh) const;
@@ -40,6 +51,7 @@ private:
     Color CharTint(int playerIdx) const; // 0=left, 1=right
     void DrawPlatform(float cx, float y, float w, float h) const;
 
+<<<<<<< HEAD
     Font        m_font       = {};
     Texture2D   m_background = {};
     std::string m_assetRoot;
@@ -53,6 +65,16 @@ private:
     int  m_roundIdx    = 0;
     int  m_scoreLeft   = 0;   // host (left side)
     int  m_scoreRight  = 0;   // client (right side)
+=======
+    Font        m_font      = {};
+    std::string m_assetRoot;
+
+    // Questions — interleaved so both players see same order
+    std::vector<QuestionData> m_questions; // 20 total
+    int  m_qIdx      = 0;
+    int  m_scoreLeft = 0;   // host (left side)
+    int  m_scoreRight= 0;   // client (right side)
+>>>>>>> a71f47d (Add game)
 
     // Per-round answer state
     int  m_myAnswer     = -1; // -1 = not answered
@@ -63,17 +85,25 @@ private:
     AnimState m_animState = AnimState::Idle;
     float     m_timer     = 0.f; // general phase/anim timer
 
+<<<<<<< HEAD
     // Result for current round: -1=draw, 0=left wins, 1=right wins, 2=both correct
     int m_roundWinner = -1;
     bool m_leftCorrect  = false;
     bool m_rightCorrect = false;
+=======
+    // Result for current round: -1=draw, 0=left wins, 1=right wins
+    int m_roundWinner = -1;
+>>>>>>> a71f47d (Add game)
 
     // Am I the host (left) or client (right)?
     NetRole m_role = NetRole::None;
 
     // Character rendering
+<<<<<<< HEAD
     bool                   m_leftFemale  = false;
     bool                   m_rightFemale = false;
+=======
+>>>>>>> a71f47d (Add game)
     std::vector<Texture2D> m_leftLayers;
     std::vector<Texture2D> m_rightLayers;
     Texture2D              m_leftSword  = {};

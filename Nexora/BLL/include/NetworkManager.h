@@ -1,6 +1,10 @@
 #pragma once
 #include "../../DL/include/CharacterData.h"
+<<<<<<< HEAD:Nexora/BLL/include/NetworkManager.h
 #include "QuestionData.h"
+=======
+#include "../../BLL/include/QuestionData.h"
+>>>>>>> a71f47d (Add game):Nexora/PL/include/NetworkManager.h
 #include <string>
 #include <vector>
 #include <cstdint>

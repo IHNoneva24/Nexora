@@ -1,4 +1,9 @@
 #include "../include/ScreenLoop.h"
+<<<<<<< HEAD
+=======
+#include "../include/NetworkManager.h"
+#include "../include/GameContext.h"
+>>>>>>> a71f47d (Add game)
 #include "../../DL/include/Database.h"
 #include "../../DL/include/UserRepository.h"
 #include "../../DL/include/CharacterRepository.h"
@@ -37,7 +42,10 @@ int main() {
     JoinLobbyScreen        joinLobby;
     QuestionCreateScreen   questionCreate;
     GameScreen             gameScreen;
+<<<<<<< HEAD
     SinglePlayerScreen     singlePlayer;
+=======
+>>>>>>> a71f47d (Add game)
 
     mainMenu.Load(assetRoot, font);
     login.Load(assetRoot, font);
@@ -48,7 +56,10 @@ int main() {
     joinLobby.Load(assetRoot, font);
     questionCreate.Load(assetRoot, font);
     gameScreen.Load(assetRoot, font);
+<<<<<<< HEAD
     singlePlayer.Load(assetRoot, font);
+=======
+>>>>>>> a71f47d (Add game)
 
     ScreenID current = ScreenID::MainMenu;
     ScreenID prev    = ScreenID::MainMenu;
@@ -75,6 +86,7 @@ int main() {
             if (current == ScreenID::Game) {
                 // Save questions from the question creation phase
                 questionCreate.FillGameContext(ctx);
+<<<<<<< HEAD
                 // Reload own character directly so it's always current
                 charSvc.Load(auth.GetUserId(), ctx.myChar);
                 gameScreen.Enter(ctx, net);
@@ -84,6 +96,10 @@ int main() {
                 charSvc.Load(auth.GetUserId(), charData);
                 singlePlayer.Enter(charData);
             }
+=======
+                gameScreen.Enter(ctx, net);
+            }
+>>>>>>> a71f47d (Add game)
         }
 
         BeginDrawing();
@@ -92,7 +108,11 @@ int main() {
         ScreenID next = TickCurrentScreen(
             current, dt,
             mainMenu, login, reg, howToPlay, charCreator,
+<<<<<<< HEAD
             hostLobby, joinLobby, questionCreate, gameScreen, singlePlayer, net,
+=======
+            hostLobby, joinLobby, questionCreate, gameScreen, net,
+>>>>>>> a71f47d (Add game)
             auth, charSvc, running);
 
         EndDrawing();
@@ -111,7 +131,10 @@ int main() {
     joinLobby.Unload();
     questionCreate.Unload();
     gameScreen.Unload();
+<<<<<<< HEAD
     singlePlayer.Unload();
+=======
+>>>>>>> a71f47d (Add game)
     UnloadFont(font);
     CloseWindow();
     return 0;

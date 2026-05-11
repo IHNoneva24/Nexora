@@ -2,8 +2,14 @@
 #include "raylib.h"
 #include "enum.h"
 #include "UIHelpers.h"
+<<<<<<< HEAD
 #include "../../BLL/include/NetworkManager.h"
 #include "../../BLL/include/GameContext.h"
+=======
+#include "NetworkManager.h"
+#include "GameContext.h"
+#include "../../BLL/include/QuestionData.h"
+>>>>>>> a71f47d (Add game)
 #include <string>
 #include <vector>
 
