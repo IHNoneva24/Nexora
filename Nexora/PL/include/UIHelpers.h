@@ -41,21 +41,25 @@ inline void DrawPanel(Rectangle r, int bw = 2) {
 
 // Returns true when clicked (button released while hovered)
 inline bool Button(Rectangle r, const std::string& label, Font font, float fs = 22.f) {
-    Vector2 m  = GetMousePosition();
-    bool hov   = CheckCollisionPointRec(m, r);
-    bool down  = hov && IsMouseButtonDown(MOUSE_LEFT_BUTTON);
-    bool click = hov && IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
+    try {
+        Vector2 m  = GetMousePosition();
+        bool hov   = CheckCollisionPointRec(m, r);
+        bool down  = hov && IsMouseButtonDown(MOUSE_LEFT_BUTTON);
+        bool click = hov && IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
 
-    DrawRectangleRec(r, down ? C_BTN_PRESS : (hov ? C_BTN_HOVER : C_BTN_NORMAL));
-    DrawRectangleLinesEx(r, 2, hov ? C_TEXT_GOLD : C_BORDER);
-    DrawCornerGems(r);
+        DrawRectangleRec(r, down ? C_BTN_PRESS : (hov ? C_BTN_HOVER : C_BTN_NORMAL));
+        DrawRectangleLinesEx(r, 2, hov ? C_TEXT_GOLD : C_BORDER);
+        DrawCornerGems(r);
 
-    Color tc = hov ? C_TEXT_GOLD : C_TEXT_LIGHT;
-    Vector2 sz = MeasureTextEx(font, label.c_str(), fs, 1);
-    Vector2 tp = { r.x + (r.width - sz.x) * .5f, r.y + (r.height - sz.y) * .5f };
-    DrawTextEx(font, label.c_str(), { tp.x+1, tp.y+1 }, fs, 1, {0,0,0,150});
-    DrawTextEx(font, label.c_str(), tp, fs, 1, tc);
-    return click;
+        Color tc = hov ? C_TEXT_GOLD : C_TEXT_LIGHT;
+        Vector2 sz = MeasureTextEx(font, label.c_str(), fs, 1);
+        Vector2 tp = { r.x + (r.width - sz.x) * .5f, r.y + (r.height - sz.y) * .5f };
+        DrawTextEx(font, label.c_str(), { tp.x+1, tp.y+1 }, fs, 1, {0,0,0,150});
+        DrawTextEx(font, label.c_str(), tp, fs, 1, tc);
+        return click;
+    } catch (...) {
+        return false;
+    }
 }
 
 // Draws an input field and handles keyboard input when active==true.
@@ -63,31 +67,35 @@ inline bool Button(Rectangle r, const std::string& label, Font font, float fs = 
 inline bool InputField(Rectangle r, std::string& text, bool active,
                        bool password, Font font, float fs = 20.f,
                        size_t maxLen = 32) {
-    DrawRectangleRec(r, C_FIELD_BG);
-    DrawRectangleLinesEx(r, 2.f, active ? C_TEXT_GOLD : C_BORDER_DARK);
+    try {
+        DrawRectangleRec(r, C_FIELD_BG);
+        DrawRectangleLinesEx(r, 2.f, active ? C_TEXT_GOLD : C_BORDER_DARK);
 
-    std::string disp = password ? std::string(text.size(), '*') : text;
-    if (active && (int)(GetTime() * 2) % 2 == 0) disp += '|';
+        std::string disp = password ? std::string(text.size(), '*') : text;
+        if (active && (int)(GetTime() * 2) % 2 == 0) disp += '|';
 
-    const float pad = 10.f;
-    while (!disp.empty() &&
-           MeasureTextEx(font, disp.c_str(), fs, 1).x > r.width - pad * 2.f)
-        disp.erase(disp.begin());
+        const float pad = 10.f;
+        while (!disp.empty() &&
+               MeasureTextEx(font, disp.c_str(), fs, 1).x > r.width - pad * 2.f)
+            disp.erase(disp.begin());
 
-    DrawTextEx(font, disp.c_str(),
-               { r.x + pad, r.y + (r.height - fs) * .5f }, fs, 1, C_TEXT_LIGHT);
+        DrawTextEx(font, disp.c_str(),
+                   { r.x + pad, r.y + (r.height - fs) * .5f }, fs, 1, C_TEXT_LIGHT);
 
-    bool enter = false;
-    if (active) {
-        int ch = GetCharPressed();
-        while (ch > 0) {
-            if (ch >= 32 && ch <= 125 && text.size() < maxLen) text += (char)ch;
-            ch = GetCharPressed();
+        bool enter = false;
+        if (active) {
+            int ch = GetCharPressed();
+            while (ch > 0) {
+                if (ch >= 32 && ch <= 125 && text.size() < maxLen) text += (char)ch;
+                ch = GetCharPressed();
+            }
+            if (IsKeyPressed(KEY_BACKSPACE) && !text.empty()) text.pop_back();
+            if (IsKeyPressed(KEY_ENTER)) enter = true;
         }
-        if (IsKeyPressed(KEY_BACKSPACE) && !text.empty()) text.pop_back();
-        if (IsKeyPressed(KEY_ENTER)) enter = true;
+        return enter;
+    } catch (...) {
+        return false;
     }
-    return enter;
 }
 
 // Grayed-out non-clickable button

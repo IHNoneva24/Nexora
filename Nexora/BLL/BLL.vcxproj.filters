@@ -20,12 +20,24 @@
     <ClInclude Include="include\User.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\QuestionData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NetworkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AuthService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CharacterService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NetworkManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,5 @@
 #include "../include/JoinLobbyScreen.h"
 #include "../include/CharacterRenderer.h"
-#include <cmath>
 
 void JoinLobbyScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
@@ -104,9 +103,7 @@ ScreenID JoinLobbyScreen::Tick(float dt, NetworkManager& net) {
     DrawLineEx({ cx, areaTop + 10.f }, { cx, areaBottom - 10.f }, 1, { 80,60,20,120 });
 
     // Waiting message
-    float pulse = (float)(0.65 + 0.35 * sin(GetTime() * 1.6));
-    Color waitCol = { 200, 180, 100, (unsigned char)(pulse * 230) };
-    UI::LabelC("Waiting for host to start...", cx, (float)sh * .88f, 20.f, waitCol, m_font);
+    UI::LabelC("Waiting for host to start...", cx, (float)sh * .88f, 20.f, UI::C_TEXT_DIM, m_font);
 
     // Disconnect
     float btnH = 50.f;

@@ -2,11 +2,10 @@
 #include "raylib.h"
 #include "enum.h"
 #include "UIHelpers.h"
-#include "NetworkManager.h"
-#include "GameContext.h"
+#include "../../BLL/include/NetworkManager.h"
+#include "../../BLL/include/GameContext.h"
 #include "../../BLL/include/AuthService.h"
 #include "../../BLL/include/CharacterService.h"
-#include "../../DL/include/CharacterData.h"
 #include <string>
 #include <vector>
 

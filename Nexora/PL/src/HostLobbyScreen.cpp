@@ -1,6 +1,5 @@
 #include "../include/HostLobbyScreen.h"
 #include "../include/CharacterRenderer.h"
-#include <cmath>
 
 void HostLobbyScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
@@ -77,9 +76,11 @@ bool HostLobbyScreen::DrawNamingScreen(int sw, int sh, NetworkManager& net) {
     // CREATE
     if (!m_gameName.empty()) {
         if (UI::Button({ startX + btnW + gap, btnY, btnW, btnH }, "CREATE", m_font, 22.f) || enter) {
-            net.StartHost(m_gameName, m_hostName);
-            m_charDataSent = false;
-            m_state = SubState::Lobby;
+            try {
+                net.StartHost(m_gameName, m_hostName);
+                m_charDataSent = false;
+                m_state = SubState::Lobby;
+            } catch (...) {}
         }
     } else {
         UI::ButtonDisabled({ startX + btnW + gap, btnY, btnW, btnH }, "CREATE", m_font, 22.f);
@@ -146,8 +147,7 @@ ScreenID HostLobbyScreen::DrawLobbyScreen(int sw, int sh, NetworkManager& net) {
     // Right — client slot
     DrawPlatform(rightCX, platY, platW, platH);
     if (!joined) {
-        float pulse = (float)(0.55 + 0.25 * sin(GetTime() * 2.0));
-        Color ghost = { 180, 160, 100, (unsigned char)(pulse * 110) };
+        Color ghost = { 180, 160, 100, 80 };
         float gH = charH * .9f, gW = CharacterRenderer::FRAME_W / CharacterRenderer::FRAME_H * gH;
         DrawRectangle((int)(rightCX - gW * .5f), (int)(platY - gH), (int)gW, (int)gH, ghost);
         UI::LabelC("Waiting for other player...", rightCX, platY - charH - 28.f,

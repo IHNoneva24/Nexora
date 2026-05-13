@@ -1,5 +1,4 @@
 #include "../include/QuestionCreateScreen.h"
-#include <cmath>
 #include <string>
 
 void QuestionCreateScreen::Load(const std::string& assetRoot, Font font) {
@@ -229,14 +228,16 @@ void QuestionCreateScreen::DrawInputting(int sw, int sh, NetworkManager& /*net*/
     if (canAdvance) {
         if (UI::Button({ cx - btnW * 0.5f, btnY, btnW, btnH }, btnLabel, m_font, 22.f) ||
             IsKeyPressed(KEY_ENTER)) {
-            CommitCurrent();
-            m_questionIdx++;
-            // Reset working state for next question
-            m_curType     = QuestionData::Type::TrueFalse;
-            m_curText     = "";
-            for (auto& c : m_curChoices) c = "";
-            m_curCorrect  = 0;
-            m_activeField = 0;
+            try {
+                CommitCurrent();
+                m_questionIdx++;
+                // Reset working state for next question
+                m_curType     = QuestionData::Type::TrueFalse;
+                m_curText     = "";
+                for (auto& c : m_curChoices) c = "";
+                m_curCorrect  = 0;
+                m_activeField = 0;
+            } catch (...) {}
         }
     } else {
         UI::ButtonDisabled({ cx - btnW * 0.5f, btnY, btnW, btnH }, btnLabel, m_font, 22.f);
@@ -261,15 +262,13 @@ void QuestionCreateScreen::DrawWaiting(int sw, int sh) {
     UI::LabelShadow("QUESTIONS SUBMITTED", cx, (float)sh * 0.35f, 36.f,
                     UI::C_TEXT_GOLD, m_font);
 
-    float pulse = (float)(0.6 + 0.4 * sin(GetTime() * 1.8));
-    Color waitCol = { 200, 180, 100, (unsigned char)(pulse * 240) };
     UI::LabelC("Waiting for the other player...", cx, (float)sh * 0.50f,
-               22.f, waitCol, m_font);
+               22.f, UI::C_TEXT_DIM, m_font);
 
     // Animated dots
     int dots = ((int)(GetTime() * 2.0) % 4);
     std::string ellipsis(dots, '.');
-    UI::LabelC(ellipsis, cx, (float)sh * 0.57f, 28.f, waitCol, m_font);
+    UI::LabelC(ellipsis, cx, (float)sh * 0.57f, 28.f, UI::C_TEXT_DIM, m_font);
 }
 
 // ── Tick ──────────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 #include "enum.h"
 #include "ParallaxBackground.h"
 #include "UIHelpers.h"
-#include "NetworkManager.h"
+#include "../../BLL/include/NetworkManager.h"
 #include "../../BLL/include/AuthService.h"
 #include <string>
 

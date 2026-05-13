@@ -39,15 +39,18 @@
     <ClCompile Include="src\JoinLobbyScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\NetworkManager.cpp">
+    <ClCompile Include="src\GameScreen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\QuestionCreateScreen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SinglePlayerScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\enum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\ScreenLoop.h">
@@ -83,7 +86,13 @@
     <ClInclude Include="include\JoinLobbyScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\NetworkManager.h">
+    <ClInclude Include="include\QuestionCreateScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SinglePlayerScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

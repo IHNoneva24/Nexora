@@ -57,15 +57,21 @@ ScreenID RegisterScreen::Tick(float dt, AuthService& auth) {
 
     // Register action
     auto doRegister = [&]() {
-        if (m_done) return;
-        std::string err = auth.Register(m_username, m_password, m_confirm);
-        if (err.empty()) {
-            m_successMsg = "Account created! You can now log in.";
-            m_errorMsg   = "";
-            m_msgTimer   = 2.5f;
-            m_done       = true;
-        } else {
-            m_errorMsg   = err;
+        try {
+            if (m_done) return;
+            std::string err = auth.Register(m_username, m_password, m_confirm);
+            if (err.empty()) {
+                m_successMsg = "Account created! You can now log in.";
+                m_errorMsg   = "";
+                m_msgTimer   = 2.5f;
+                m_done       = true;
+            } else {
+                m_errorMsg   = err;
+                m_successMsg = "";
+                m_msgTimer   = 3.5f;
+            }
+        } catch (...) {
+            m_errorMsg   = "An unexpected error occurred.";
             m_successMsg = "";
             m_msgTimer   = 3.5f;
         }

@@ -1,14 +1,7 @@
-#include "raylib.h"
-#include "../include/enum.h"
 #include "../include/ScreenLoop.h"
-#include "../include/NetworkManager.h"
-#include "../include/GameContext.h"
 #include "../../DL/include/Database.h"
 #include "../../DL/include/UserRepository.h"
 #include "../../DL/include/CharacterRepository.h"
-#include "../../BLL/include/AuthService.h"
-#include "../../BLL/include/CharacterService.h"
-#include <string>
 
 int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -44,6 +37,7 @@ int main() {
     JoinLobbyScreen        joinLobby;
     QuestionCreateScreen   questionCreate;
     GameScreen             gameScreen;
+    SinglePlayerScreen     singlePlayer;
 
     mainMenu.Load(assetRoot, font);
     login.Load(assetRoot, font);
@@ -54,6 +48,7 @@ int main() {
     joinLobby.Load(assetRoot, font);
     questionCreate.Load(assetRoot, font);
     gameScreen.Load(assetRoot, font);
+    singlePlayer.Load(assetRoot, font);
 
     ScreenID current = ScreenID::MainMenu;
     ScreenID prev    = ScreenID::MainMenu;
@@ -82,6 +77,11 @@ int main() {
                 questionCreate.FillGameContext(ctx);
                 gameScreen.Enter(ctx, net);
             }
+            if (current == ScreenID::SinglePlayerGame) {
+                CharacterData charData;
+                charSvc.Load(auth.GetUserId(), charData);
+                singlePlayer.Enter(charData);
+            }
         }
 
         BeginDrawing();
@@ -90,7 +90,7 @@ int main() {
         ScreenID next = TickCurrentScreen(
             current, dt,
             mainMenu, login, reg, howToPlay, charCreator,
-            hostLobby, joinLobby, questionCreate, gameScreen, net,
+            hostLobby, joinLobby, questionCreate, gameScreen, singlePlayer, net,
             auth, charSvc, running);
 
         EndDrawing();
@@ -109,6 +109,7 @@ int main() {
     joinLobby.Unload();
     questionCreate.Unload();
     gameScreen.Unload();
+    singlePlayer.Unload();
     UnloadFont(font);
     CloseWindow();
     return 0;

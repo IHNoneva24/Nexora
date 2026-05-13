@@ -10,5 +10,6 @@ enum class ScreenID {
     JoinLobby,
     QuestionCreate,
     Game,
+    SinglePlayerGame,
     Exit
 };

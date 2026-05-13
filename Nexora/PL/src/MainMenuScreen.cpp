@@ -1,6 +1,4 @@
 #include "../include/MainMenuScreen.h"
-#include <cstdlib>
-#include <cmath>
 
 void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
@@ -15,48 +13,11 @@ void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
     m_castle = LoadTexture(castlePath.c_str());
     SetTextureFilter(m_castle, TEXTURE_FILTER_POINT);
 
-    InitParticles(1280, 720);
 }
 
 void MainMenuScreen::Unload() {
     m_bg.Unload();
     UnloadTexture(m_castle);
-}
-
-// ── Particles ─────────────────────────────────────────────────────────────────
-void MainMenuScreen::InitParticles(int sw, int sh) {
-    m_particles.clear();
-    for (int i = 0; i < 28; ++i) {
-        Particle p;
-        p.x     = (float)(rand() % sw);
-        p.y     = (float)(rand() % sh);
-        p.speed = 12.f + (rand() % 28);
-        p.alpha = 50.f  + (rand() % 90);
-        p.size  = 10.f  + (rand() % 10);
-        p.sym   = rand() % 6;
-        m_particles.push_back(p);
-    }
-}
-
-void MainMenuScreen::UpdateParticles(float dt, int sw, int sh) {
-    for (auto& p : m_particles) {
-        p.y     -= p.speed * dt;
-        p.alpha += dt * 30.f;
-        if (p.y < -20.f) {
-            p.y     = (float)(sh + 10);
-            p.x     = (float)(rand() % sw);
-            p.alpha = 50.f;
-        }
-        if (p.alpha > 130.f) p.alpha = 50.f;
-    }
-}
-
-void MainMenuScreen::DrawParticles() const {
-    const char* syms[] = { "*", "+", "o", "x", "~", "#" };
-    for (auto& p : m_particles) {
-        Color c = { 200, 160, 50, (unsigned char)p.alpha };
-        DrawTextEx(m_font, syms[p.sym], { p.x, p.y }, p.size, 1, c);
-    }
 }
 
 // ── Tick ──────────────────────────────────────────────────────────────────────
@@ -67,7 +28,6 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
 
     // Update
     m_bg.Update(dt);
-    UpdateParticles(dt, sw, sh);
 
     // ── Draw background ───────────────────────────────────────────────────────
     m_bg.Draw(sw, sh);
@@ -81,8 +41,6 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
                       0.f, scale, { 255,255,255,170 });
     }
 
-    DrawParticles();
-
     // ── Title ─────────────────────────────────────────────────────────────────
     const char* title = "REALM OF HEROES";
     float titleY = (float)sh * .18f;
@@ -93,8 +51,8 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     // ── Main buttons ──────────────────────────────────────────────────────────
     float bW = 264.f, bH = 54.f;
     float bX = cx - bW * .5f;
-    float sY = (float)sh * .46f;
-    float gap = 64.f;
+    float sY = (float)sh * .40f;
+    float gap = 56.f;
 
     ScreenID next = ScreenID::MainMenu;
 
@@ -102,11 +60,23 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     bool hasChar  = loggedIn && charSvc.HasCharacter(auth.GetUserId());
     bool canPlay  = loggedIn && hasChar;
 
-    Rectangle hostRect = { bX, sY,         bW, bH };
-    Rectangle joinRect = { bX, sY + gap,   bW, bH };
-    Rectangle charRect = { bX, sY + gap*2, bW, bH };
-    Rectangle htpRect  = { bX, sY + gap*3, bW, bH };
-    Rectangle exitRect = { bX, sY + gap*4, bW, bH };
+    Rectangle spRect   = { bX, sY,           bW, bH };
+    Rectangle hostRect = { bX, sY + gap,     bW, bH };
+    Rectangle joinRect = { bX, sY + gap*2,   bW, bH };
+    Rectangle charRect = { bX, sY + gap*3,   bW, bH };
+    Rectangle htpRect  = { bX, sY + gap*4,   bW, bH };
+    Rectangle exitRect = { bX, sY + gap*5,   bW, bH };
+
+    // SINGLE PLAYER
+    if (canPlay) {
+        if (UI::Button(spRect, "SINGLE PLAYER", m_font, 24.f)) next = ScreenID::SinglePlayerGame;
+    } else {
+        UI::ButtonDisabled(spRect, "SINGLE PLAYER", m_font, 24.f);
+        if (!loggedIn)
+            UI::Tooltip(spRect, "Sign in to play", m_font);
+        else
+            UI::Tooltip(spRect, "Create a character first", m_font);
+    }
 
     // HOST GAME
     if (canPlay) {
@@ -213,9 +183,7 @@ bool MainMenuScreen::DrawJoinPopup(int sw, int sh, NetworkManager& net) {
     int   visRows = 5;
 
     if (games.empty()) {
-        float pulse = (float)(0.6 + 0.4 * sin(GetTime() * 1.8));
-        Color dim = { 160, 140, 100, (unsigned char)(pulse * 200) };
-        UI::LabelC("Searching for games on your network...", cx, listY + rowH * 1.2f, 18.f, dim, m_font);
+        UI::LabelC("Searching for games on your network...", cx, listY + rowH * 1.2f, 18.f, UI::C_TEXT_DIM, m_font);
         UI::LabelC("Ask your friend to host a game first.", cx, listY + rowH * 1.2f + 28.f,
                    15.f, UI::C_TEXT_DIM, m_font);
     } else {
@@ -244,16 +212,19 @@ bool MainMenuScreen::DrawJoinPopup(int sw, int sh, NetworkManager& net) {
 
             Rectangle joinBtn = { row.x + row.width - 90.f, row.y + 10.f, 80.f, rowH - 26.f };
             if (UI::Button(joinBtn, "JOIN", m_font, 16.f)) {
-                std::string err;
-                if (net.Connect(g.hostIP, g.port, err)) {
-                    m_joinedGameName  = g.gameName;
-                    m_showJoinPopup   = false;
-                    m_discoveryActive = false; // discovery socket closed by Connect internals? No — stop manually
-                    // UDP discovery socket is separate; stop it now that we have a TCP connection
-                    net.StopDiscovery();
-                    return true;
-                } else {
-                    m_connectError = err;
+                try {
+                    std::string err;
+                    if (net.Connect(g.hostIP, g.port, err)) {
+                        m_joinedGameName  = g.gameName;
+                        m_showJoinPopup   = false;
+                        m_discoveryActive = false;
+                        net.StopDiscovery();
+                        return true;
+                    } else {
+                        m_connectError = err;
+                    }
+                } catch (...) {
+                    m_connectError = "An unexpected error occurred.";
                 }
             }
         }

@@ -22,10 +22,14 @@
     <ClInclude Include="include\AuthService.h" />
     <ClInclude Include="include\CharacterService.h" />
     <ClInclude Include="include\User.h" />
+    <ClInclude Include="include\QuestionData.h" />
+    <ClInclude Include="include\NetworkManager.h" />
+    <ClInclude Include="include\GameContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AuthService.cpp" />
     <ClCompile Include="src\CharacterService.cpp" />
+    <ClCompile Include="src\NetworkManager.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

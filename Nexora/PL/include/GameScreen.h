@@ -2,10 +2,9 @@
 #include "raylib.h"
 #include "enum.h"
 #include "UIHelpers.h"
-#include "NetworkManager.h"
-#include "GameContext.h"
+#include "../../BLL/include/NetworkManager.h"
+#include "../../BLL/include/GameContext.h"
 #include "CharacterRenderer.h"
-#include "../../BLL/include/QuestionData.h"
 #include <string>
 #include <vector>
 
@@ -29,7 +28,6 @@ private:
     // ── Anim states ──────────────────────────────────────────────────────────
     enum class AnimState { Idle, Lunge, Impact, Return };
 
-    void BuildQuestionList(const GameContext& ctx, NetRole role);
     void StartRound();
     void EvaluateRound();
     void DrawBackground(int sw, int sh) const;
@@ -45,11 +43,15 @@ private:
     Font        m_font      = {};
     std::string m_assetRoot;
 
-    // Questions — interleaved so both players see same order
-    std::vector<QuestionData> m_questions; // 20 total
-    int  m_qIdx      = 0;
-    int  m_scoreLeft = 0;   // host (left side)
-    int  m_scoreRight= 0;   // client (right side)
+    // Questions — each player answers the OTHER player's questions
+    // Host answers clientQuestions[i], Client answers hostQuestions[i]
+    std::vector<QuestionData> m_hostQuestions;   // created by host
+    std::vector<QuestionData> m_clientQuestions; // created by client
+    static constexpr int TOTAL_ROUNDS = 10;
+
+    int  m_roundIdx    = 0;
+    int  m_scoreLeft   = 0;   // host (left side)
+    int  m_scoreRight  = 0;   // client (right side)
 
     // Per-round answer state
     int  m_myAnswer     = -1; // -1 = not answered
@@ -60,8 +62,10 @@ private:
     AnimState m_animState = AnimState::Idle;
     float     m_timer     = 0.f; // general phase/anim timer
 
-    // Result for current round: -1=draw, 0=left wins, 1=right wins
+    // Result for current round: -1=draw, 0=left wins, 1=right wins, 2=both correct
     int m_roundWinner = -1;
+    bool m_leftCorrect  = false;
+    bool m_rightCorrect = false;
 
     // Am I the host (left) or client (right)?
     NetRole m_role = NetRole::None;
