@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 
+<<<<<<< HEAD
 constexpr int SinglePlayerScreen::PRIZE_VALUES[TOTAL_QUESTIONS];
 
 void SinglePlayerScreen::DrawBackground(int sw, int sh) const {
@@ -30,6 +31,33 @@ void SinglePlayerScreen::Unload() {
 }
 
 // Resets all game state and loads questions and the player's character for a new round
+=======
+// Static member definition
+constexpr int SinglePlayerScreen::PRIZE_VALUES[TOTAL_QUESTIONS];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+static std::string FormatMoney(int amount) {
+    std::string s = std::to_string(amount);
+    // Insert commas
+    int n = (int)s.size();
+    for (int i = n - 3; i > 0; i -= 3)
+        s.insert(i, ",");
+    return "$" + s;
+}
+
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
+
+void SinglePlayerScreen::Load(const std::string& assetRoot, Font font) {
+    m_assetRoot = assetRoot;
+    m_font      = font;
+}
+
+void SinglePlayerScreen::Unload() {
+    CharacterRenderer::UnloadLayers(m_charLayers);
+}
+
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::Enter(const CharacterData& charData) {
     m_phase        = Phase::Playing;
     m_questionIdx  = 0;
@@ -49,23 +77,41 @@ void SinglePlayerScreen::Enter(const CharacterData& charData) {
     LoadQuestions();
     ShuffleQuestions();
 
+<<<<<<< HEAD
+=======
+    // Load character
+>>>>>>> f23d997 (Add singleplayer)
     m_charData = charData;
     CharacterRenderer::UnloadLayers(m_charLayers);
     m_charLayers = CharacterRenderer::LoadLayers(charData, m_assetRoot);
 }
 
+<<<<<<< HEAD
 // Randomly reorders the question list using Fisher-Yates
 void SinglePlayerScreen::ShuffleQuestions() {
+=======
+void SinglePlayerScreen::ShuffleQuestions() {
+    // Simple Fisher-Yates shuffle
+>>>>>>> f23d997 (Add singleplayer)
     for (int i = (int)m_questions.size() - 1; i > 0; --i) {
         int j = rand() % (i + 1);
         std::swap(m_questions[i], m_questions[j]);
     }
 }
 
+<<<<<<< HEAD
 // Populates the question list with all predefined multiple-choice questions
 void SinglePlayerScreen::LoadQuestions() {
     struct QDef { const char* text; const char* a; const char* b; const char* c; const char* d; int correct; };
     static const QDef defs[TOTAL_QUESTIONS] = {
+=======
+// ─── Predefined Questions ─────────────────────────────────────────────────────
+
+void SinglePlayerScreen::LoadQuestions() {
+    struct QDef { const char* text; const char* a; const char* b; const char* c; const char* d; int correct; };
+    static const QDef defs[TOTAL_QUESTIONS] = {
+        // Easy ($100 - $1,000)
+>>>>>>> f23d997 (Add singleplayer)
         {"What color are bananas when they are ripe?",
          "Red", "Yellow", "Blue", "Green", 1},
         {"How many legs does a spider have?",
@@ -76,6 +122,10 @@ void SinglePlayerScreen::LoadQuestions() {
          "Atlantic", "Indian", "Arctic", "Pacific", 3},
         {"In what country would you find the Eiffel Tower?",
          "Italy", "Germany", "France", "Spain", 2},
+<<<<<<< HEAD
+=======
+        // Medium ($2,000 - $32,000)
+>>>>>>> f23d997 (Add singleplayer)
         {"What is the chemical symbol for gold?",
          "Go", "Gd", "Au", "Ag", 2},
         {"Which artist painted the Mona Lisa?",
@@ -86,6 +136,10 @@ void SinglePlayerScreen::LoadQuestions() {
          "Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen", 2},
         {"In what year did the Titanic sink?",
          "1905", "1912", "1920", "1898", 1},
+<<<<<<< HEAD
+=======
+        // Hard ($64,000 - $1,000,000)
+>>>>>>> f23d997 (Add singleplayer)
         {"What is the hardest natural substance on Earth?",
          "Titanium", "Diamond", "Quartz", "Graphene", 1},
         {"Which element has the atomic number 79?",
@@ -111,19 +165,114 @@ void SinglePlayerScreen::LoadQuestions() {
     }
 }
 
+<<<<<<< HEAD
 // Draws the current question text inside a panel at the center of the screen
+=======
+// ─── Gameplay Drawing ─────────────────────────────────────────────────────────
+
+void SinglePlayerScreen::DrawBackground(int sw, int sh) const {
+    // Dark gradient background with subtle blue tones (like the WWTBAM set)
+    for (int y = 0; y < sh; ++y) {
+        float t = (float)y / (float)sh;
+        unsigned char r = (unsigned char)(4 + t * 8);
+        unsigned char g = (unsigned char)(2 + t * 12);
+        unsigned char b = (unsigned char)(12 + t * 20);
+        DrawRectangle(0, y, sw, 1, { r, g, b, 255 });
+    }
+
+    // Subtle radial glow in center
+    float cx = (float)sw * 0.5f;
+    float cy = (float)sh * 0.45f;
+    for (int i = 200; i > 0; i -= 4) {
+        float radius = (float)i * 1.8f;
+        unsigned char alpha = (unsigned char)(8.f * ((float)i / 200.f));
+        DrawCircle((int)cx, (int)cy, radius, { 30, 50, 120, alpha });
+    }
+}
+
+void SinglePlayerScreen::DrawMoneyLadder(int sw, int sh) const {
+    float ladderX = (float)sw - 220.f;
+    float ladderW = 200.f;
+    float rowH    = 28.f;
+    float startY  = (float)sh * 0.08f;
+
+    // Draw from top (question 15) to bottom (question 1)
+    for (int i = TOTAL_QUESTIONS - 1; i >= 0; --i) {
+        int displayIdx = TOTAL_QUESTIONS - 1 - i; // row index from top
+        float ry = startY + displayIdx * rowH;
+
+        bool isCurrent   = (i == m_questionIdx);
+        bool isCompleted = (i < m_questionIdx);
+        bool isSafetyNet = (i == SAFETY_NET_1 || i == SAFETY_NET_2);
+        bool isMillionaire = (i == TOTAL_QUESTIONS - 1);
+
+        Color bg, textCol;
+        if (isCurrent) {
+            bg = { 200, 160, 50, 80 };
+            textCol = UI::C_TEXT_GOLD;
+        } else if (isCompleted) {
+            bg = { 20, 60, 20, 60 };
+            textCol = { 80, 160, 80, 200 };
+        } else {
+            bg = { 10, 8, 20, 100 };
+            textCol = UI::C_TEXT_DIM;
+        }
+
+        Rectangle row = { ladderX, ry, ladderW, rowH - 2.f };
+        DrawRectangleRec(row, bg);
+
+        if (isCurrent)
+            DrawRectangleLinesEx(row, 1.f, UI::C_TEXT_GOLD);
+        else if (isSafetyNet || isMillionaire)
+            DrawRectangleLinesEx(row, 1.f, { 120, 90, 20, 120 });
+
+        // Question number
+        std::string num = std::to_string(i + 1);
+        UI::Label(num, ladderX + 6.f, ry + 4.f, 14.f, textCol, m_font);
+
+        // Money value
+        std::string money = FormatMoney(PRIZE_VALUES[i]);
+        if (isSafetyNet || isMillionaire) {
+            textCol = isCurrent ? UI::C_TEXT_GOLD :
+                      isCompleted ? Color{80,160,80,200} :
+                      Color{200,160,50,200};
+        }
+        Vector2 sz = MeasureTextEx(m_font, money.c_str(), 14.f, 1);
+        DrawTextEx(m_font, money.c_str(),
+                   { ladderX + ladderW - sz.x - 8.f, ry + 4.f }, 14.f, 1, textCol);
+    }
+}
+
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::DrawQuestion(int sw, int sh) const {
     if (m_questionIdx >= TOTAL_QUESTIONS) return;
     const QuestionData& q = m_questions[m_questionIdx];
 
+<<<<<<< HEAD
     float cx = (float)sw * 0.5f;
     float panelW = (float)sw * 0.60f;
     float panelY = (float)sh * 0.38f;
 
+=======
+    float cx = (float)sw * 0.5f - 60.f; // offset left to account for money ladder
+    float panelW = (float)sw * 0.52f;
+    float panelY = (float)sh * 0.36f;
+
+    // Diamond-shaped question panel (approximated with rectangle)
+>>>>>>> f23d997 (Add singleplayer)
     Rectangle panel = { cx - panelW * 0.5f, panelY, panelW, 72.f };
     DrawRectangleRec(panel, { 10, 15, 40, 220 });
     DrawRectangleLinesEx(panel, 2.f, { 100, 140, 220, 200 });
 
+<<<<<<< HEAD
+=======
+    // Question number label
+    std::string qNum = "Question " + std::to_string(m_questionIdx + 1) +
+                       " for " + FormatMoney(PRIZE_VALUES[m_questionIdx]);
+    UI::LabelC(qNum, cx, panelY - 22.f, 16.f, UI::C_TEXT_GOLD, m_font);
+
+    // Question text
+>>>>>>> f23d997 (Add singleplayer)
     float fs = 20.f;
     Vector2 sz = MeasureTextEx(m_font, q.text.c_str(), fs, 1);
     while (sz.x > panelW - 30.f && fs > 12.f) {
@@ -135,21 +284,35 @@ void SinglePlayerScreen::DrawQuestion(int sw, int sh) const {
                fs, 1, UI::C_TEXT_LIGHT);
 }
 
+<<<<<<< HEAD
 // Draws the A/B/C/D answer buttons at the bottom and handles click selection
+=======
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
     if (m_questionIdx >= TOTAL_QUESTIONS) return;
     const QuestionData& q = m_questions[m_questionIdx];
 
+<<<<<<< HEAD
     float cx = (float)sw * 0.5f;
     int numChoices = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
 
+=======
+    float cx = (float)sw * 0.5f - 60.f;
+    int numChoices = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
+
+    // WWTBAM layout: 2x2 grid for 4 choices, 1x2 for true/false
+>>>>>>> f23d997 (Add singleplayer)
     float btnW = (float)sw * 0.22f;
     float btnH = 48.f;
     float gapX = 16.f;
     float gapY = 12.f;
     float gridW = btnW * 2 + gapX;
     float startX = cx - gridW * 0.5f;
+<<<<<<< HEAD
     float startY = (float)sh - btnH * 2 - gapY - 24.f;
+=======
+    float startY = (float)sh * 0.55f;
+>>>>>>> f23d997 (Add singleplayer)
 
     const char* choiceLabels[] = { "A", "B", "C", "D" };
     const char* tfLabels[]     = { "TRUE", "FALSE" };
@@ -174,6 +337,10 @@ void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
         bool eliminated = (m_fiftyFiftyActive &&
                           (i == m_eliminatedChoices[0] || i == m_eliminatedChoices[1]));
 
+<<<<<<< HEAD
+=======
+        // Skip eliminated choices
+>>>>>>> f23d997 (Add singleplayer)
         if (eliminated) {
             DrawRectangleRec(r, { 10, 8, 15, 100 });
             DrawRectangleLinesEx(r, 1.f, { 40, 30, 20, 80 });
@@ -208,6 +375,10 @@ void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
         DrawRectangleRec(r, bg);
         DrawRectangleLinesEx(r, selected ? 2.f : 1.f, border);
 
+<<<<<<< HEAD
+=======
+        // Label
+>>>>>>> f23d997 (Add singleplayer)
         const char* prefix = (q.type == QuestionData::Type::TrueFalse)
                              ? tfLabels[i] : choiceLabels[i];
         std::string label;
@@ -227,6 +398,10 @@ void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
                    { r.x + (r.width - sz.x) * 0.5f, r.y + (r.height - sz.y) * 0.5f },
                    fs, 1, tc);
 
+<<<<<<< HEAD
+=======
+        // Click handler
+>>>>>>> f23d997 (Add singleplayer)
         try {
             if (!locked && !eliminated &&
                 CheckCollisionPointRec(GetMousePosition(), r) &&
@@ -237,6 +412,7 @@ void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
     }
 }
 
+<<<<<<< HEAD
 // Draws the hint buttons (50:50, Phone, Audience) and Walk Away at the top center
 void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
     float btnSize = 50.f;
@@ -244,6 +420,15 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
     float totalW = btnSize * 3 + gap * 2;
     float startX = (float)sw * 0.5f - totalW * 0.5f;
     float llY = 14.f;
+=======
+void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
+    float cx = (float)sw * 0.5f - 60.f;
+    float llY = (float)sh * 0.12f;
+    float btnSize = 56.f;
+    float gap = 20.f;
+    float totalW = btnSize * 3 + gap * 2;
+    float startX = cx - totalW * 0.5f;
+>>>>>>> f23d997 (Add singleplayer)
 
     bool canUse = (m_phase == Phase::Playing && m_selectedAnswer < 0);
 
@@ -263,6 +448,10 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
         Rectangle r = { bx, llY, btnSize, btnSize };
 
         if (lifelines[i].used) {
+<<<<<<< HEAD
+=======
+            // Used - draw crossed out
+>>>>>>> f23d997 (Add singleplayer)
             DrawRectangleRec(r, { 15, 10, 8, 120 });
             DrawRectangleLinesEx(r, 1.f, { 60, 40, 20, 120 });
             Color dimTc = { 80, 60, 40, 140 };
@@ -271,6 +460,10 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
             DrawTextEx(m_font, lifelines[i].label,
                        { r.x + (r.width - sz.x) * 0.5f, r.y + (r.height - sz.y) * 0.5f },
                        fs, 1, dimTc);
+<<<<<<< HEAD
+=======
+            // Cross
+>>>>>>> f23d997 (Add singleplayer)
             DrawLineEx({ r.x + 4, r.y + 4 }, { r.x + r.width - 4, r.y + r.height - 4 },
                        2.f, { 200, 50, 30, 160 });
             DrawLineEx({ r.x + r.width - 4, r.y + 4 }, { r.x + 4, r.y + r.height - 4 },
@@ -288,6 +481,10 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
                        { r.x + (r.width - sz.x) * 0.5f, r.y + (r.height - sz.y) * 0.5f },
                        fs, 1, tc);
 
+<<<<<<< HEAD
+=======
+            // Tooltip
+>>>>>>> f23d997 (Add singleplayer)
             if (hov) {
                 Vector2 tsz = MeasureTextEx(m_font, lifelines[i].tooltip, 13.f, 1);
                 float tx = r.x + (r.width - tsz.x) * 0.5f;
@@ -297,26 +494,49 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
                 DrawTextEx(m_font, lifelines[i].tooltip, { tx, ty }, 13.f, 1, UI::C_TEXT_DIM);
             }
 
+<<<<<<< HEAD
             if (hov && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
                 try {
                     if (i == 0) {
                         m_usedFiftyFifty  = true;
                         m_fiftyFiftyActive = true;
                         const QuestionData& q = m_questions[m_questionIdx];
+=======
+            // Click
+            if (hov && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+                try {
+                    if (i == 0) { // 50:50
+                        m_usedFiftyFifty  = true;
+                        m_fiftyFiftyActive = true;
+                        const QuestionData& q = m_questions[m_questionIdx];
+                        // Pick 2 wrong answers to eliminate
+>>>>>>> f23d997 (Add singleplayer)
                         std::vector<int> wrongIndices;
                         int numC = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
                         for (int j = 0; j < numC; ++j)
                             if (j != q.correctIdx) wrongIndices.push_back(j);
+<<<<<<< HEAD
+=======
+                        // Shuffle and pick first 2 (or 1 for true/false)
+>>>>>>> f23d997 (Add singleplayer)
                         for (int j = (int)wrongIndices.size() - 1; j > 0; --j) {
                             int k = rand() % (j + 1);
                             std::swap(wrongIndices[j], wrongIndices[k]);
                         }
                         m_eliminatedChoices[0] = wrongIndices[0];
                         m_eliminatedChoices[1] = (wrongIndices.size() > 1) ? wrongIndices[1] : -1;
+<<<<<<< HEAD
                     } else if (i == 1) {
                         m_usedPhoneAFriend = true;
                         m_showPhonePopup   = true;
                         const QuestionData& q = m_questions[m_questionIdx];
+=======
+                    } else if (i == 1) { // Phone a friend
+                        m_usedPhoneAFriend = true;
+                        m_showPhonePopup   = true;
+                        const QuestionData& q = m_questions[m_questionIdx];
+                        // 70% chance friend gives correct answer
+>>>>>>> f23d997 (Add singleplayer)
                         int friendAnswer;
                         if (rand() % 100 < 70) {
                             friendAnswer = q.correctIdx;
@@ -332,11 +552,19 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
                             m_phoneAdvice = "I think it's " + std::string(letters[friendAnswer]) +
                                             ": " + q.choices[friendAnswer] + ".";
                         }
+<<<<<<< HEAD
                     } else {
+=======
+                    } else { // Ask the audience
+>>>>>>> f23d997 (Add singleplayer)
                         m_usedAskAudience   = true;
                         m_showAudiencePopup = true;
                         const QuestionData& q = m_questions[m_questionIdx];
                         int numC = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
+<<<<<<< HEAD
+=======
+                        // Give correct answer highest percentage (50-70%)
+>>>>>>> f23d997 (Add singleplayer)
                         int correctPct = 50 + rand() % 21;
                         int remaining = 100 - correctPct;
                         for (int j = 0; j < 4; ++j) m_audienceBars[j] = 0;
@@ -348,6 +576,10 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
                             m_audienceBars[j] = pct;
                             remaining -= pct;
                         }
+<<<<<<< HEAD
+=======
+                        // Give any remainder to last non-correct choice
+>>>>>>> f23d997 (Add singleplayer)
                         if (remaining > 0) {
                             for (int j = numC - 1; j >= 0; --j) {
                                 if (j != q.correctIdx) {
@@ -360,6 +592,10 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
                 } catch (...) {}
             }
         } else {
+<<<<<<< HEAD
+=======
+            // Available but can't use right now
+>>>>>>> f23d997 (Add singleplayer)
             DrawRectangleRec(r, { 12, 15, 35, 160 });
             DrawRectangleLinesEx(r, 1.f, { 50, 60, 90, 120 });
             float fs = (i == 2) ? 11.f : 14.f;
@@ -370,13 +606,23 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
         }
     }
 
+<<<<<<< HEAD
     float llCX = (float)sw * 0.5f;
     float waW = 130.f, waH = 36.f;
     Rectangle waRect = { llCX - waW * 0.5f, llY + btnSize + 20.f, waW, waH };
+=======
+    // Walk Away button
+    float waW = 130.f, waH = 36.f;
+    Rectangle waRect = { cx - waW * 0.5f, llY + btnSize + 12.f, waW, waH };
+>>>>>>> f23d997 (Add singleplayer)
     if (canUse) {
         if (UI::Button(waRect, "WALK AWAY", m_font, 16.f)) {
             try {
                 m_winnings = (m_questionIdx > 0) ? PRIZE_VALUES[m_questionIdx - 1] : 0;
+<<<<<<< HEAD
+=======
+                // Check safety nets
+>>>>>>> f23d997 (Add singleplayer)
                 if (m_questionIdx > SAFETY_NET_2)
                     m_winnings = std::max(m_winnings, PRIZE_VALUES[SAFETY_NET_2]);
                 else if (m_questionIdx > SAFETY_NET_1)
@@ -386,9 +632,29 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
             } catch (...) {}
         }
     }
+<<<<<<< HEAD
 }
 
 // Shows the Phone a Friend popup with the simulated friend's advice
+=======
+
+    // Current winnings display
+    float winY = llY + btnSize + 12.f + waH + 16.f;
+    std::string winStr = "Current: " + FormatMoney(
+        (m_questionIdx > 0) ? PRIZE_VALUES[m_questionIdx - 1] : 0);
+    UI::LabelC(winStr, cx, winY, 16.f, UI::C_TEXT_DIM, m_font);
+
+    // Safety net info
+    if (m_questionIdx <= SAFETY_NET_1) {
+        UI::LabelC("Safety: " + FormatMoney(PRIZE_VALUES[SAFETY_NET_1]),
+                   cx, winY + 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
+    } else if (m_questionIdx <= SAFETY_NET_2) {
+        UI::LabelC("Safety: " + FormatMoney(PRIZE_VALUES[SAFETY_NET_2]),
+                   cx, winY + 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
+    }
+}
+
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::DrawPhoneAFriendPopup(int sw, int sh) {
     if (!m_showPhonePopup) return;
 
@@ -404,6 +670,10 @@ void SinglePlayerScreen::DrawPhoneAFriendPopup(int sw, int sh) {
     UI::LabelShadow("PHONE A FRIEND", cx, popY + 16.f, 28.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(cx - 120.f, popY + 52.f, 240.f);
 
+<<<<<<< HEAD
+=======
+    // Friend's advice with word wrap
+>>>>>>> f23d997 (Add singleplayer)
     float fs = 18.f;
     Vector2 sz = MeasureTextEx(m_font, m_phoneAdvice.c_str(), fs, 1);
     while (sz.x > popW - 40.f && fs > 12.f) {
@@ -420,7 +690,10 @@ void SinglePlayerScreen::DrawPhoneAFriendPopup(int sw, int sh) {
     }
 }
 
+<<<<<<< HEAD
 // Shows the Ask the Audience popup with a bar chart of simulated vote percentages
+=======
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::DrawAskAudiencePopup(int sw, int sh) {
     if (!m_showAudiencePopup) return;
 
@@ -436,6 +709,10 @@ void SinglePlayerScreen::DrawAskAudiencePopup(int sw, int sh) {
     UI::LabelShadow("ASK THE AUDIENCE", cx, popY + 14.f, 26.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(cx - 120.f, popY + 48.f, 240.f);
 
+<<<<<<< HEAD
+=======
+    // Bar chart
+>>>>>>> f23d997 (Add singleplayer)
     const QuestionData& q = m_questions[m_questionIdx];
     int numC = (q.type == QuestionData::Type::TrueFalse) ? 2 : 4;
     float barW = 50.f;
@@ -452,15 +729,27 @@ void SinglePlayerScreen::DrawAskAudiencePopup(int sw, int sh) {
         float bx = barStartX + i * (barW + barGap);
         float barH = barMaxH * ((float)m_audienceBars[i] / 100.f);
 
+<<<<<<< HEAD
+=======
+        // Bar
+>>>>>>> f23d997 (Add singleplayer)
         DrawRectangle((int)bx, (int)(barBaseY - barH), (int)barW, (int)barH,
                       { 60, 120, 200, 200 });
         DrawRectangleLinesEx({ bx, barBaseY - barH, barW, barH }, 1.f,
                              { 100, 160, 240, 200 });
 
+<<<<<<< HEAD
+=======
+        // Percentage
+>>>>>>> f23d997 (Add singleplayer)
         std::string pct = std::to_string(m_audienceBars[i]) + "%";
         UI::LabelC(pct, bx + barW * 0.5f, barBaseY - barH - 18.f, 14.f,
                    UI::C_TEXT_LIGHT, m_font);
 
+<<<<<<< HEAD
+=======
+        // Label
+>>>>>>> f23d997 (Add singleplayer)
         const char* lbl = (q.type == QuestionData::Type::TrueFalse) ? tfLabels[i] : labels[i];
         UI::LabelC(lbl, bx + barW * 0.5f, barBaseY + 4.f, 16.f, UI::C_TEXT_GOLD, m_font);
     }
@@ -472,12 +761,19 @@ void SinglePlayerScreen::DrawAskAudiencePopup(int sw, int sh) {
     }
 }
 
+<<<<<<< HEAD
 // Draws the player's character sprite and its platform in the bottom-left corner
+=======
+>>>>>>> f23d997 (Add singleplayer)
 void SinglePlayerScreen::DrawCharacter(int sw, int sh) const {
     float platY = (float)sh * 0.92f;
     float charCX = 120.f;
     CharacterRenderer::Draw(m_charLayers, charCX, platY, 130.f);
 
+<<<<<<< HEAD
+=======
+    // Small platform
+>>>>>>> f23d997 (Add singleplayer)
     float platW = 100.f;
     Rectangle plat = { charCX - platW * 0.5f, platY, platW, 14.f };
     DrawRectangleRec(plat, { 40, 30, 15, 200 });
@@ -487,7 +783,11 @@ void SinglePlayerScreen::DrawCharacter(int sw, int sh) const {
 void SinglePlayerScreen::DrawCorrectOverlay(int sw, int sh) const {
     if (m_phase != Phase::Correct) return;
 
+<<<<<<< HEAD
     float cx = (float)sw * 0.5f;
+=======
+    float cx = (float)sw * 0.5f - 60.f;
+>>>>>>> f23d997 (Add singleplayer)
     float cy = (float)sh * 0.48f;
 
     float alpha = std::min(1.f, m_timer / 0.3f);
@@ -497,15 +797,31 @@ void SinglePlayerScreen::DrawCorrectOverlay(int sw, int sh) const {
     float fs = 48.f;
     Vector2 sz = MeasureTextEx(m_font, msg.c_str(), fs, 1);
 
+<<<<<<< HEAD
     DrawTextEx(m_font, msg.c_str(), { cx - sz.x * 0.5f + 3, cy + 3 }, fs, 1,
                { 0, 0, 0, (unsigned char)(alpha * 180) });
     DrawTextEx(m_font, msg.c_str(), { cx - sz.x * 0.5f, cy }, fs, 1, col);
+=======
+    // Shadow
+    DrawTextEx(m_font, msg.c_str(), { cx - sz.x * 0.5f + 3, cy + 3 }, fs, 1,
+               { 0, 0, 0, (unsigned char)(alpha * 180) });
+    DrawTextEx(m_font, msg.c_str(), { cx - sz.x * 0.5f, cy }, fs, 1, col);
+
+    // Show money won
+    std::string moneyMsg = "You won " + FormatMoney(PRIZE_VALUES[m_questionIdx]);
+    UI::LabelC(moneyMsg, cx, cy + 56.f, 22.f,
+               { 255, 215, 80, (unsigned char)(alpha * 255) }, m_font);
+>>>>>>> f23d997 (Add singleplayer)
 }
 
 void SinglePlayerScreen::DrawWrongOverlay(int sw, int sh) const {
     if (m_phase != Phase::Wrong) return;
 
+<<<<<<< HEAD
     float cx = (float)sw * 0.5f;
+=======
+    float cx = (float)sw * 0.5f - 60.f;
+>>>>>>> f23d997 (Add singleplayer)
     float cy = (float)sh * 0.46f;
 
     float alpha = std::min(1.f, m_timer / 0.3f);
@@ -519,6 +835,10 @@ void SinglePlayerScreen::DrawWrongOverlay(int sw, int sh) const {
                { 0, 0, 0, (unsigned char)(alpha * 180) });
     DrawTextEx(m_font, msg.c_str(), { cx - sz.x * 0.5f, cy }, fs, 1, col);
 
+<<<<<<< HEAD
+=======
+    // Show correct answer
+>>>>>>> f23d997 (Add singleplayer)
     const QuestionData& q = m_questions[m_questionIdx];
     const char* labels[] = { "A", "B", "C", "D" };
     std::string correctMsg;
@@ -530,10 +850,18 @@ void SinglePlayerScreen::DrawWrongOverlay(int sw, int sh) const {
     }
     UI::LabelC(correctMsg, cx, cy + 52.f, 18.f,
                { 200, 180, 140, (unsigned char)(alpha * 220) }, m_font);
+<<<<<<< HEAD
+=======
+
+    // Show what they take home
+    UI::LabelC("You take home: " + FormatMoney(m_winnings), cx, cy + 80.f, 20.f,
+               { 255, 215, 80, (unsigned char)(alpha * 255) }, m_font);
+>>>>>>> f23d997 (Add singleplayer)
 }
 
 bool SinglePlayerScreen::DrawGameOver(int sw, int sh) {
     float cx = (float)sw * 0.5f;
+<<<<<<< HEAD
     if (m_bgGameOver.id != 0)
         DrawTexturePro(m_bgGameOver,
             { 0, 0, (float)m_bgGameOver.width, (float)m_bgGameOver.height },
@@ -547,6 +875,17 @@ bool SinglePlayerScreen::DrawGameOver(int sw, int sh) {
         UI::LabelShadow("CONGRATULATIONS!", cx, (float)sh * 0.10f, 52.f,
                         UI::C_TEXT_GOLD, m_font);
         UI::LabelC("YOU WON!", cx, (float)sh * 0.10f + 60.f, 36.f,
+=======
+    DrawRectangle(0, 0, sw, sh, { 6, 4, 8, 255 });
+
+    bool isMillionaire = (m_winnings == PRIZE_VALUES[TOTAL_QUESTIONS - 1]);
+
+    // Title
+    if (isMillionaire) {
+        UI::LabelShadow("CONGRATULATIONS!", cx, (float)sh * 0.10f, 52.f,
+                        UI::C_TEXT_GOLD, m_font);
+        UI::LabelC("YOU ARE A MILLIONAIRE!", cx, (float)sh * 0.10f + 60.f, 36.f,
+>>>>>>> f23d997 (Add singleplayer)
                    UI::C_TEXT_GOLD, m_font);
     } else if (m_phase == Phase::WalkAway) {
         UI::LabelShadow("YOU WALKED AWAY", cx, (float)sh * 0.12f, 46.f,
@@ -558,27 +897,61 @@ bool SinglePlayerScreen::DrawGameOver(int sw, int sh) {
 
     UI::Divider(cx - 200.f, (float)sh * 0.30f, 400.f);
 
+<<<<<<< HEAD
     std::string qMsg = "Questions answered: " + std::to_string(m_questionIdx) +
                        " / " + std::to_string(TOTAL_QUESTIONS);
     UI::LabelC(qMsg, cx, (float)sh * 0.40f, 18.f, UI::C_TEXT_DIM, m_font);
 
     DrawCharacter(sw, sh);
 
+=======
+    // Final winnings
+    float py = (float)sh * 0.36f;
+    UI::LabelC("FINAL WINNINGS", cx, py, 22.f, UI::C_TEXT_DIM, m_font);
+    py += 40.f;
+
+    Color moneyCol = isMillionaire ? UI::C_TEXT_GOLD : UI::C_TEXT_LIGHT;
+    UI::LabelShadow(FormatMoney(m_winnings), cx, py, 64.f, moneyCol, m_font);
+    py += 80.f;
+
+    // Questions answered
+    std::string qMsg = "Questions answered: " + std::to_string(m_questionIdx) +
+                       " / " + std::to_string(TOTAL_QUESTIONS);
+    UI::LabelC(qMsg, cx, py, 18.f, UI::C_TEXT_DIM, m_font);
+
+    // Character
+    DrawCharacter(sw, sh);
+
+    // Main menu button
+>>>>>>> f23d997 (Add singleplayer)
     float btnH = 50.f, btnW = 200.f;
     return UI::Button({ cx - btnW * 0.5f, (float)sh - btnH - 30.f, btnW, btnH },
                       "MAIN MENU", m_font, 22.f);
 }
 
+<<<<<<< HEAD
 // Updates game phase logic each frame and draws the full gameplay scene
 ScreenID SinglePlayerScreen::Tick(float dt) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
 
+=======
+// ─── Tick ─────────────────────────────────────────────────────────────────────
+
+ScreenID SinglePlayerScreen::Tick(float dt) {
+    int sw = GetScreenWidth(), sh = GetScreenHeight();
+
+    // ── Game Over phase ──────────────────────────────────────────────────────
+>>>>>>> f23d997 (Add singleplayer)
     if (m_phase == Phase::GameOver || m_phase == Phase::WalkAway) {
         if (DrawGameOver(sw, sh))
             return ScreenID::MainMenu;
         return ScreenID::SinglePlayerGame;
     }
 
+<<<<<<< HEAD
+=======
+    // ── Phase logic ──────────────────────────────────────────────────────────
+>>>>>>> f23d997 (Add singleplayer)
     switch (m_phase) {
     case Phase::Playing:
         if (m_selectedAnswer >= 0) {
@@ -594,6 +967,10 @@ ScreenID SinglePlayerScreen::Tick(float dt) {
             if (m_selectedAnswer == q.correctIdx) {
                 m_phase = Phase::Correct;
             } else {
+<<<<<<< HEAD
+=======
+                // Calculate winnings based on safety nets
+>>>>>>> f23d997 (Add singleplayer)
                 if (m_questionIdx > SAFETY_NET_2)
                     m_winnings = PRIZE_VALUES[SAFETY_NET_2];
                 else if (m_questionIdx > SAFETY_NET_1)
@@ -637,6 +1014,7 @@ ScreenID SinglePlayerScreen::Tick(float dt) {
         break;
     }
 
+<<<<<<< HEAD
     DrawBackground(sw, sh);
     DrawCharacter(sw, sh);
     DrawLifelines(sw, sh);
@@ -645,6 +1023,19 @@ ScreenID SinglePlayerScreen::Tick(float dt) {
     DrawCorrectOverlay(sw, sh);
     DrawWrongOverlay(sw, sh);
 
+=======
+    // ── Render ───────────────────────────────────────────────────────────────
+    DrawBackground(sw, sh);
+    DrawMoneyLadder(sw, sh);
+    DrawCharacter(sw, sh);
+    DrawQuestion(sw, sh);
+    DrawAnswerChoices(sw, sh);
+    DrawLifelines(sw, sh);
+    DrawCorrectOverlay(sw, sh);
+    DrawWrongOverlay(sw, sh);
+
+    // Draw popups on top
+>>>>>>> f23d997 (Add singleplayer)
     DrawPhoneAFriendPopup(sw, sh);
     DrawAskAudiencePopup(sw, sh);
 

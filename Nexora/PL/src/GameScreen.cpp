@@ -289,7 +289,14 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
         shakeOff = std::sin(elapsed * 55.f) * 9.f * (m_shakeTimer / 0.4f);
     }
 
+<<<<<<< HEAD
     // Left character (flipped via source-rect so it faces right)
+=======
+    DrawPlatform((float)sw * 0.20f, platY, platW, PLAT_H);
+    DrawPlatform((float)sw * 0.80f, platY, platW, PLAT_H);
+
+    // Left character
+>>>>>>> f23d997 (Add singleplayer)
     {
         float cx = leftCX + (m_shakeTarget == 0 ? shakeOff : 0.f);
         Color tint = CharTint(0);

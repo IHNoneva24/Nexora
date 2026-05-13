@@ -52,8 +52,11 @@ private:
 
     Font        m_font      = {};
     std::string m_assetRoot;
+<<<<<<< HEAD
     Texture2D   m_background = {};
     Texture2D   m_bgGameOver = {};
+=======
+>>>>>>> f23d997 (Add singleplayer)
     Phase       m_phase     = Phase::Playing;
 
     // Questions

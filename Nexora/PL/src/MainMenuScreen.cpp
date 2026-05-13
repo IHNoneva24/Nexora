@@ -4,6 +4,7 @@ void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
     m_font      = font;
 
+<<<<<<< HEAD
     std::string bgPath = assetRoot + "/background2.png";
     m_bgImage = LoadTexture(bgPath.c_str());
     if (m_bgImage.id != 0)
@@ -12,6 +13,22 @@ void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
 
 void MainMenuScreen::Unload() {
     if (m_bgImage.id != 0) UnloadTexture(m_bgImage);
+=======
+    m_bg.Load(assetRoot +
+        "/GandalfHardcore Background layers/Normal BG");
+
+    std::string castlePath =
+        assetRoot +
+        "/GandalfHardcore Background layers/Normal BG/Background Castle .png";
+    m_castle = LoadTexture(castlePath.c_str());
+    SetTextureFilter(m_castle, TEXTURE_FILTER_POINT);
+
+}
+
+void MainMenuScreen::Unload() {
+    m_bg.Unload();
+    UnloadTexture(m_castle);
+>>>>>>> f23d997 (Add singleplayer)
 }
 
 // ── Tick ──────────────────────────────────────────────────────────────────────
@@ -20,6 +37,12 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
+<<<<<<< HEAD
+=======
+    // Update
+    m_bg.Update(dt);
+
+>>>>>>> f23d997 (Add singleplayer)
     // ── Draw background ───────────────────────────────────────────────────────
     if (m_bgImage.id != 0) {
         float scaleX = (float)sw / (float)m_bgImage.width;
@@ -33,6 +56,16 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
                        { 0, 0 }, 0.f, WHITE);
     }
 
+<<<<<<< HEAD
+=======
+    // ── Title ─────────────────────────────────────────────────────────────────
+    const char* title = "REALM OF HEROES";
+    float titleY = (float)sh * .18f;
+    UI::LabelShadow(title, cx, titleY, 66.f, UI::C_TEXT_GOLD, m_font);
+    UI::LabelC("~ A Fantasy Adventure ~", cx, titleY + 74.f, 22.f, UI::C_TEXT_DIM, m_font);
+    UI::Divider(cx - 170.f, titleY + 104.f, 340.f);
+
+>>>>>>> f23d997 (Add singleplayer)
     // ── Main buttons ──────────────────────────────────────────────────────────
     float bW = 264.f, bH = 54.f;
     float bX = cx - bW * .5f;
@@ -52,6 +85,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     Rectangle charRect = { bX, sY + gap*3,   bW, bH };
     Rectangle exitRect = { bX, sY + gap*4,   bW, bH };
 
+<<<<<<< HEAD
     // SINGLE PLAYER
     if (canPlay) {
         if (UI::Button(spRect, "SINGLE PLAYER", m_font, 24.f) && !popupOpen)
@@ -64,6 +98,24 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
             else
                 UI::Tooltip(spRect, "Create a character first", m_font);
         }
+=======
+    Rectangle spRect   = { bX, sY,           bW, bH };
+    Rectangle hostRect = { bX, sY + gap,     bW, bH };
+    Rectangle joinRect = { bX, sY + gap*2,   bW, bH };
+    Rectangle charRect = { bX, sY + gap*3,   bW, bH };
+    Rectangle htpRect  = { bX, sY + gap*4,   bW, bH };
+    Rectangle exitRect = { bX, sY + gap*5,   bW, bH };
+
+    // SINGLE PLAYER
+    if (canPlay) {
+        if (UI::Button(spRect, "SINGLE PLAYER", m_font, 24.f)) next = ScreenID::SinglePlayerGame;
+    } else {
+        UI::ButtonDisabled(spRect, "SINGLE PLAYER", m_font, 24.f);
+        if (!loggedIn)
+            UI::Tooltip(spRect, "Sign in to play", m_font);
+        else
+            UI::Tooltip(spRect, "Create a character first", m_font);
+>>>>>>> f23d997 (Add singleplayer)
     }
 
     // HOST GAME
