@@ -55,5 +55,7 @@ private:
     LayerSet m_femaleSkin;
     LayerSet m_femaleHair;
     LayerSet m_femaleTop;
+    LayerSet m_femaleSkirt;
     LayerSet m_femaleFeet;
+    bool     m_showSkirt = false;
 };

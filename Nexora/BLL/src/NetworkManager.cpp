@@ -1,7 +1,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <iphlpapi.h>
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
 
 #include "../include/NetworkManager.h"
 #include <cstring>
@@ -31,6 +33,55 @@ struct DiscoveryPacket {
 static void MakeNonBlocking(SOCKET s) {
     u_long mode = 1;
     ioctlsocket(s, FIONBIO, &mode);
+}
+
+// Returns a list of subnet-directed broadcast addresses for all active IPv4 adapters.
+// Falls back to 255.255.255.255 if none found.
+static std::vector<in_addr> GetBroadcastAddresses() {
+    std::vector<in_addr> addrs;
+
+    // Use GetAdaptersAddresses to enumerate interfaces
+    ULONG bufSize = 15000;
+    std::vector<uint8_t> buf(bufSize);
+    PIP_ADAPTER_ADDRESSES adapters = (PIP_ADAPTER_ADDRESSES)buf.data();
+
+    ULONG flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER;
+    ULONG result = GetAdaptersAddresses(AF_INET, flags, nullptr, adapters, &bufSize);
+    if (result == ERROR_BUFFER_OVERFLOW) {
+        buf.resize(bufSize);
+        adapters = (PIP_ADAPTER_ADDRESSES)buf.data();
+        result = GetAdaptersAddresses(AF_INET, flags, nullptr, adapters, &bufSize);
+    }
+
+    if (result == NO_ERROR) {
+        for (auto* adapter = adapters; adapter; adapter = adapter->Next) {
+            if (adapter->OperStatus != IfOperStatusUp) continue;
+            if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK) continue;
+
+            for (auto* ua = adapter->FirstUnicastAddress; ua; ua = ua->Next) {
+                if (ua->Address.lpSockaddr->sa_family != AF_INET) continue;
+
+                sockaddr_in* sa = (sockaddr_in*)ua->Address.lpSockaddr;
+                ULONG prefixLen = ua->OnLinkPrefixLength;
+
+                // Calculate subnet-directed broadcast: IP | ~mask
+                uint32_t ip   = ntohl(sa->sin_addr.s_addr);
+                uint32_t mask = (prefixLen == 0) ? 0 : (~0u << (32 - prefixLen));
+                uint32_t bcast = ip | ~mask;
+
+                in_addr bcastAddr;
+                bcastAddr.s_addr = htonl(bcast);
+                addrs.push_back(bcastAddr);
+            }
+        }
+    }
+
+    // Always include limited broadcast as fallback
+    in_addr limited;
+    limited.s_addr = INADDR_BROADCAST;
+    addrs.push_back(limited);
+
+    return addrs;
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -130,13 +181,16 @@ void NetworkManager::BroadcastAnnounce() {
     strncpy_s(pkt.gameName, m_gameName.c_str(), 31);
     strncpy_s(pkt.hostName, m_hostName.c_str(), 31);
 
-    sockaddr_in dest{};
-    dest.sin_family      = AF_INET;
-    dest.sin_addr.s_addr = INADDR_BROADCAST;
-    dest.sin_port        = htons(DISC_PORT);
-
-    sendto((SOCKET)m_udpSock, (char*)&pkt, (int)sizeof(pkt), 0,
-           (sockaddr*)&dest, (int)sizeof(dest));
+    // Send to all subnet-directed broadcast addresses for better LAN compatibility
+    std::vector<in_addr> targets = GetBroadcastAddresses();
+    for (const auto& addr : targets) {
+        sockaddr_in dest{};
+        dest.sin_family = AF_INET;
+        dest.sin_addr   = addr;
+        dest.sin_port   = htons(DISC_PORT);
+        sendto((SOCKET)m_udpSock, (char*)&pkt, (int)sizeof(pkt), 0,
+               (sockaddr*)&dest, (int)sizeof(dest));
+    }
 }
 
 void NetworkManager::TryAcceptClient() {
@@ -553,12 +607,16 @@ void NetworkManager::BroadcastSession() {
     pkt.magic = SESSION_MAGIC;
     strncpy_s(pkt.username, m_sessionUsername.c_str(), 31);
 
-    sockaddr_in dest{};
-    dest.sin_family      = AF_INET;
-    dest.sin_addr.s_addr = INADDR_BROADCAST;
-    dest.sin_port        = htons(SESSION_PORT);
-    sendto((SOCKET)m_sessionSock, (char*)&pkt, (int)sizeof(pkt), 0,
-           (sockaddr*)&dest, (int)sizeof(dest));
+    // Send to all subnet-directed broadcast addresses
+    std::vector<in_addr> targets = GetBroadcastAddresses();
+    for (const auto& addr : targets) {
+        sockaddr_in dest{};
+        dest.sin_family = AF_INET;
+        dest.sin_addr   = addr;
+        dest.sin_port   = htons(SESSION_PORT);
+        sendto((SOCKET)m_sessionSock, (char*)&pkt, (int)sizeof(pkt), 0,
+               (sockaddr*)&dest, (int)sizeof(dest));
+    }
 }
 
 static constexpr float CHECK_DURATION = 1.5f; // listen window for duplicate check

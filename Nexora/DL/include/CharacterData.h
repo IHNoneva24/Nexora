@@ -6,6 +6,6 @@ struct CharacterData {
     int skinIdx  = 0;
     int hairIdx  = 0;
     int topIdx   = 0;
-    int pantsIdx = 0;  // male only; stored but ignored for female
+    int pantsIdx = 0;  // male: pants index; female: 0=no skirt, 1=skirt
     int feetIdx  = 0;
 };

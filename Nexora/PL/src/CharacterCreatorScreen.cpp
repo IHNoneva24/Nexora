@@ -85,6 +85,8 @@ void CharacterCreatorScreen::Load(const std::string& assetRoot, Font font) {
     LoadTex(m_femaleTop, fCloth + "Purple Corset.png",    "Purple Corset");
     LoadTex(m_femaleTop, fCloth + "Purple Corset v2.png", "Purple Corset Alt");
 
+    LoadTex(m_femaleSkirt, fCloth + "Skirt.png", "Skirt");
+
     LoadTex(m_femaleFeet, fCloth + "Boots.png",         "Boots");
     LoadTex(m_femaleFeet, fCloth + "Socks.png",         "Socks");
     LoadTex(m_femaleFeet, fCloth + "Green Socks.png",   "Green Socks");
@@ -99,7 +101,7 @@ void CharacterCreatorScreen::Unload() {
     UnloadSet(m_maleTop);   UnloadSet(m_malePants); UnloadSet(m_maleFeet);
 
     UnloadSet(m_femaleSkin); UnloadSet(m_femaleHair);
-    UnloadSet(m_femaleTop);  UnloadSet(m_femaleFeet);
+    UnloadSet(m_femaleTop);  UnloadSet(m_femaleSkirt); UnloadSet(m_femaleFeet);
 }
 
 // ── Enter ─────────────────────────────────────────────────────────────────────
@@ -124,7 +126,9 @@ void CharacterCreatorScreen::Enter(int userId, CharacterService& charSvc) {
         m_femaleSkin.index = clamp(data.skinIdx, (int)m_femaleSkin.textures.size());
         m_femaleHair.index = clamp(data.hairIdx, (int)m_femaleHair.textures.size());
         m_femaleTop.index  = clamp(data.topIdx,  (int)m_femaleTop.textures.size());
+        m_femaleSkirt.index = clamp(data.pantsIdx, (int)m_femaleSkirt.textures.size());
         m_femaleFeet.index = clamp(data.feetIdx, (int)m_femaleFeet.textures.size());
+        m_showSkirt = (data.pantsIdx > 0);
     }
 }
 
@@ -177,6 +181,7 @@ void CharacterCreatorScreen::DrawLayeredPreview(float cx, float py, float maxH) 
     } else {
         push(m_femaleSkin);
         push(m_femaleTop);
+        if (m_showSkirt) push(m_femaleSkirt);
         push(m_femaleFeet);
         push(m_femaleHair);
     }
@@ -247,6 +252,16 @@ ScreenID CharacterCreatorScreen::Tick(float dt, CharacterService& charSvc) {
 
     if (m_gender == 0) {
         Selector(selCX, selStartY + selGapY * 4, btnSz, m_malePants, "PANTS");
+    } else {
+        // Skirt toggle
+        float skirtY = selStartY + selGapY * 4;
+        UI::LabelC("SKIRT", selCX, skirtY - 16.f, 13.f, UI::C_TEXT_DIM, m_font);
+        float toggleW = 120.f, toggleH = 34.f;
+        Rectangle toggleRect = { selCX - toggleW * 0.5f, skirtY, toggleW, toggleH };
+        const char* skirtLabel = m_showSkirt ? "ON" : "OFF";
+        if (UI::Button(toggleRect, skirtLabel, m_font, 18.f)) {
+            m_showSkirt = !m_showSkirt;
+        }
     }
 
     // ── Back / Confirm ────────────────────────────────────────────────────────
@@ -270,7 +285,7 @@ ScreenID CharacterCreatorScreen::Tick(float dt, CharacterService& charSvc) {
             data.skinIdx  = m_femaleSkin.index;
             data.hairIdx  = m_femaleHair.index;
             data.topIdx   = m_femaleTop.index;
-            data.pantsIdx = 0;
+            data.pantsIdx = m_showSkirt ? 1 : 0;
             data.feetIdx  = m_femaleFeet.index;
         }
         charSvc.Save(data);

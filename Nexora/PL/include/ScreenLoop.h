@@ -32,7 +32,7 @@ inline ScreenID TickCurrentScreen(
         case ScreenID::MainMenu:          next = mainMenu.Tick(dt, auth, charSvc, net); break;
         case ScreenID::Login:             next = login.Tick(dt, auth, net);             break;
         case ScreenID::Register:          next = reg.Tick(dt, auth);                    break;
-        case ScreenID::HowToPlay:         next = howToPlay.Tick(dt);                    break;
+        case ScreenID::HowToPlay:         next = ScreenID::MainMenu;                    break;
         case ScreenID::CharacterCreate:   next = charCreator.Tick(dt, charSvc);         break;
         case ScreenID::HostLobby:         next = hostLobby.Tick(dt, net);               break;
         case ScreenID::JoinLobby:         next = joinLobby.Tick(dt, net);               break;

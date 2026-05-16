@@ -1,7 +1,6 @@
 #pragma once
 #include "raylib.h"
 #include "enum.h"
-#include "ParallaxBackground.h"
 #include "UIHelpers.h"
 #include "../../BLL/include/NetworkManager.h"
 #include "../../BLL/include/AuthService.h"
@@ -33,12 +32,12 @@ private:
     // Returns true when a game was successfully joined (navigates to JoinLobby).
     bool DrawJoinPopup(int sw, int sh, NetworkManager& net);
 
-    ParallaxBackground m_bg;
-    Texture2D          m_castle = {};
-    Font               m_font   = {};
-    std::string        m_assetRoot;
+    Texture2D   m_bgImage = {};
+    Font        m_font    = {};
+    std::string m_assetRoot;
 
     bool        m_showJoinPopup   = false;
+    bool        m_showSettings    = false;
     bool        m_discoveryActive = false;
     int         m_joinScroll      = 0;
     std::string m_connectError;

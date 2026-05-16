@@ -61,6 +61,7 @@ inline std::vector<Texture2D> LoadLayers(const CharacterData& data,
 
         load(skin + "Female Skin" + n(data.skinIdx) + ".png");
         if (data.topIdx  < 10) load(cloth + tops[data.topIdx]);
+        if (data.pantsIdx > 0) load(cloth + "Skirt.png");
         if (data.feetIdx < 7)  load(cloth + feet[data.feetIdx]);
         load(hair + "Female Hair" + n(data.hairIdx) + ".png");
     }

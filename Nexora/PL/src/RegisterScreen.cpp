@@ -80,7 +80,7 @@ ScreenID RegisterScreen::Tick(float dt, AuthService& auth) {
 
     // Buttons
     const float bW = 180.f, bH = 46.f;
-    const float bY = pY + pH - 64.f;
+    const float bY = pY + pH - 90.f;
 
     if (UI::Button({ cx - bW - 10.f, bY, bW, bH }, "CREATE ACCOUNT", m_font, 20.f)) doRegister();
     if (UI::Button({ cx + 10.f,      bY, bW, bH }, "LOGIN",          m_font, 22.f)) {

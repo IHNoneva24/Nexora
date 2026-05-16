@@ -101,7 +101,7 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
 
     // Buttons
     const float bW = 180.f, bH = 46.f;
-    const float bY = pY + pH - 64.f;
+    const float bY = pY + pH - 90.f;
 
     if (UI::Button({ cx - bW - 10.f, bY, bW, bH }, "LOGIN",    m_font, 22.f)) doLogin();
     if (UI::Button({ cx + 10.f,      bY, bW, bH }, "REGISTER", m_font, 22.f)) {

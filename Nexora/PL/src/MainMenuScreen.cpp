@@ -4,20 +4,14 @@ void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
     m_font      = font;
 
-    m_bg.Load(assetRoot +
-        "/GandalfHardcore Background layers/Normal BG");
-
-    std::string castlePath =
-        assetRoot +
-        "/GandalfHardcore Background layers/Normal BG/Background Castle .png";
-    m_castle = LoadTexture(castlePath.c_str());
-    SetTextureFilter(m_castle, TEXTURE_FILTER_POINT);
-
+    std::string bgPath = assetRoot + "/main-menu-background.png";
+    m_bgImage = LoadTexture(bgPath.c_str());
+    if (m_bgImage.id != 0)
+        SetTextureFilter(m_bgImage, TEXTURE_FILTER_BILINEAR);
 }
 
 void MainMenuScreen::Unload() {
-    m_bg.Unload();
-    UnloadTexture(m_castle);
+    if (m_bgImage.id != 0) UnloadTexture(m_bgImage);
 }
 
 // ── Tick ──────────────────────────────────────────────────────────────────────
@@ -26,27 +20,24 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
-    // Update
-    m_bg.Update(dt);
-
     // ── Draw background ───────────────────────────────────────────────────────
-    m_bg.Draw(sw, sh);
-
-    if (m_castle.id != 0) {
-        float scale = (float)sh / (float)m_castle.height * 0.68f;
-        float cw    = (float)m_castle.width * scale;
-        float ch    = (float)m_castle.height * scale;
-        DrawTextureEx(m_castle,
-                      { (sw - cw) * .5f, (float)sh - ch },
-                      0.f, scale, { 255,255,255,170 });
+    if (m_bgImage.id != 0) {
+        float scaleX = (float)sw / (float)m_bgImage.width;
+        float scaleY = (float)sh / (float)m_bgImage.height;
+        float scale  = (scaleX > scaleY) ? scaleX : scaleY;
+        float drawW  = (float)m_bgImage.width * scale;
+        float drawH  = (float)m_bgImage.height * scale;
+        DrawTexturePro(m_bgImage,
+                       { 0, 0, (float)m_bgImage.width, (float)m_bgImage.height },
+                       { (sw - drawW) * 0.5f, (sh - drawH) * 0.5f, drawW, drawH },
+                       { 0, 0 }, 0.f, WHITE);
     }
 
     // ── Title ─────────────────────────────────────────────────────────────────
-    const char* title = "REALM OF HEROES";
+    const char* title = "NEXORA";
     float titleY = (float)sh * .18f;
     UI::LabelShadow(title, cx, titleY, 66.f, UI::C_TEXT_GOLD, m_font);
-    UI::LabelC("~ A Fantasy Adventure ~", cx, titleY + 74.f, 22.f, UI::C_TEXT_DIM, m_font);
-    UI::Divider(cx - 170.f, titleY + 104.f, 340.f);
+    UI::Divider(cx - 170.f, titleY + 74.f, 340.f);
 
     // ── Main buttons ──────────────────────────────────────────────────────────
     float bW = 264.f, bH = 54.f;
@@ -56,6 +47,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
 
     ScreenID next = ScreenID::MainMenu;
 
+    bool popupOpen = m_showSettings || m_showJoinPopup;
     bool loggedIn = auth.IsLoggedIn();
     bool hasChar  = loggedIn && charSvc.HasCharacter(auth.GetUserId());
     bool canPlay  = loggedIn && hasChar;
@@ -64,34 +56,39 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     Rectangle hostRect = { bX, sY + gap,     bW, bH };
     Rectangle joinRect = { bX, sY + gap*2,   bW, bH };
     Rectangle charRect = { bX, sY + gap*3,   bW, bH };
-    Rectangle htpRect  = { bX, sY + gap*4,   bW, bH };
-    Rectangle exitRect = { bX, sY + gap*5,   bW, bH };
+    Rectangle exitRect = { bX, sY + gap*4,   bW, bH };
 
     // SINGLE PLAYER
     if (canPlay) {
-        if (UI::Button(spRect, "SINGLE PLAYER", m_font, 24.f)) next = ScreenID::SinglePlayerGame;
+        if (UI::Button(spRect, "SINGLE PLAYER", m_font, 24.f) && !popupOpen)
+            next = ScreenID::SinglePlayerGame;
     } else {
         UI::ButtonDisabled(spRect, "SINGLE PLAYER", m_font, 24.f);
-        if (!loggedIn)
-            UI::Tooltip(spRect, "Sign in to play", m_font);
-        else
-            UI::Tooltip(spRect, "Create a character first", m_font);
+        if (!popupOpen) {
+            if (!loggedIn)
+                UI::Tooltip(spRect, "Sign in to play", m_font);
+            else
+                UI::Tooltip(spRect, "Create a character first", m_font);
+        }
     }
 
     // HOST GAME
     if (canPlay) {
-        if (UI::Button(hostRect, "HOST GAME", m_font, 24.f)) next = ScreenID::HostLobby;
+        if (UI::Button(hostRect, "HOST GAME", m_font, 24.f) && !popupOpen)
+            next = ScreenID::HostLobby;
     } else {
         UI::ButtonDisabled(hostRect, "HOST GAME", m_font, 24.f);
-        if (!loggedIn)
-            UI::Tooltip(hostRect, "Sign in to play", m_font);
-        else
-            UI::Tooltip(hostRect, "Create a character first", m_font);
+        if (!popupOpen) {
+            if (!loggedIn)
+                UI::Tooltip(hostRect, "Sign in to play", m_font);
+            else
+                UI::Tooltip(hostRect, "Create a character first", m_font);
+        }
     }
 
     // JOIN GAME
     if (canPlay) {
-        if (UI::Button(joinRect, "JOIN GAME", m_font, 24.f)) {
+        if (UI::Button(joinRect, "JOIN GAME", m_font, 24.f) && !popupOpen) {
             m_showJoinPopup   = true;
             m_joinScroll      = 0;
             m_connectError    = "";
@@ -102,39 +99,94 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
         }
     } else {
         UI::ButtonDisabled(joinRect, "JOIN GAME", m_font, 24.f);
-        if (!loggedIn)
-            UI::Tooltip(joinRect, "Sign in to play", m_font);
-        else
-            UI::Tooltip(joinRect, "Create a character first", m_font);
+        if (!popupOpen) {
+            if (!loggedIn)
+                UI::Tooltip(joinRect, "Sign in to play", m_font);
+            else
+                UI::Tooltip(joinRect, "Create a character first", m_font);
+        }
     }
 
     // CHARACTER
     if (loggedIn) {
-        if (UI::Button(charRect, "CHARACTER", m_font, 24.f)) next = ScreenID::CharacterCreate;
+        if (UI::Button(charRect, "CHARACTER", m_font, 24.f) && !popupOpen)
+            next = ScreenID::CharacterCreate;
     } else {
         UI::ButtonDisabled(charRect, "CHARACTER", m_font, 24.f);
-        UI::Tooltip(charRect, "Sign in first", m_font);
+        if (!popupOpen) UI::Tooltip(charRect, "Sign in first", m_font);
     }
 
-    if (UI::Button(htpRect,  "HOW TO PLAY", m_font, 24.f)) next = ScreenID::HowToPlay;
-    if (UI::Button(exitRect, "EXIT",         m_font, 24.f)) next = ScreenID::Exit;
+    if (UI::Button(exitRect, "EXIT", m_font, 24.f) && !popupOpen)
+        next = ScreenID::Exit;
 
     // ── Sign In / Username (top right) ────────────────────────────────────────
     std::string siLabel = auth.IsLoggedIn() ? auth.GetUsername() : "Sign In";
     float siW = 160.f, siH = 38.f;
     Rectangle siRect = { (float)sw - siW - 16.f, 22.f, siW, siH };
 
-    if (UI::Button(siRect, siLabel, m_font, 18.f)) {
+    if (UI::Button(siRect, siLabel, m_font, 18.f) && !popupOpen) {
         if (auth.IsLoggedIn()) { net.StopSessionBroadcast(); auth.Logout(); }
         else                   next = ScreenID::Login;
     }
 
     // Tooltip
-    if (auth.IsLoggedIn() && CheckCollisionPointRec(GetMousePosition(), siRect)) {
+    if (!popupOpen && auth.IsLoggedIn() && CheckCollisionPointRec(GetMousePosition(), siRect)) {
         DrawRectangle((int)siRect.x - 60, (int)(siRect.y + siH + 6), 140, 22, {10,6,2,210});
         UI::Label("Click to log out",
                   siRect.x - 56.f, siRect.y + siH + 8.f,
                   14.f, UI::C_TEXT_DIM, m_font);
+    }
+
+    // ── Settings button (top-left) ─────────────────────────────────────────────
+    Rectangle settingsBtn = { 16.f, 22.f, 100.f, 38.f };
+    if (UI::Button(settingsBtn, "SETTINGS", m_font, 16.f) && !m_showJoinPopup)
+        m_showSettings = !m_showSettings;
+
+    // ── Settings popup ──────────────────────────────────────────────────────────
+    if (m_showSettings) {
+        DrawRectangle(0, 0, sw, sh, { 0, 0, 0, 140 });
+        float popW = 400.f, popH = 320.f;
+        float popX = (float)sw * 0.5f - popW * 0.5f;
+        float popY = (float)sh * 0.5f - popH * 0.5f;
+        Rectangle panel = { popX, popY, popW, popH };
+        UI::DrawPanel(panel);
+
+        UI::LabelShadow("SETTINGS", (float)sw * 0.5f, popY + 16.f, 30.f, UI::C_TEXT_GOLD, m_font);
+        UI::Divider((float)sw * 0.5f - 100.f, popY + 54.f, 200.f);
+
+        UI::LabelC("WINDOW SIZE", (float)sw * 0.5f, popY + 72.f, 16.f, UI::C_TEXT_DIM, m_font);
+
+        struct SizeOption { const char* label; int w; int h; };
+        SizeOption sizes[] = {
+            { "1280 x 720",  1280, 720 },
+            { "1366 x 768",  1366, 768 },
+            { "1600 x 900",  1600, 900 },
+            { "1920 x 1080", 1920, 1080 },
+            { "MAXIMIZED",   0,    0 }
+        };
+
+        float btnW2 = 200.f, btnH2 = 36.f;
+        float startY2 = popY + 96.f;
+        for (int i = 0; i < 5; ++i) {
+            Rectangle r = { (float)sw * 0.5f - btnW2 * 0.5f, startY2 + i * 42.f, btnW2, btnH2 };
+            if (UI::Button(r, sizes[i].label, m_font, 16.f)) {
+                if (sizes[i].w == 0) {
+                    MaximizeWindow();
+                } else {
+                    if (IsWindowMaximized()) RestoreWindow();
+                    SetWindowSize(sizes[i].w, sizes[i].h);
+                    SetWindowPosition(
+                        (GetMonitorWidth(GetCurrentMonitor()) - sizes[i].w) / 2,
+                        (GetMonitorHeight(GetCurrentMonitor()) - sizes[i].h) / 2);
+                }
+                m_showSettings = false;
+            }
+        }
+
+        // Close button
+        Rectangle closeBtn = { popX + popW - 38.f, popY + 10.f, 28.f, 28.f };
+        if (UI::Button(closeBtn, "X", m_font, 16.f)) m_showSettings = false;
+        if (IsKeyPressed(KEY_ESCAPE)) m_showSettings = false;
     }
 
     // ── Join-game popup (drawn on top of everything) ──────────────────────────

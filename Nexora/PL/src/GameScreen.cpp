@@ -233,7 +233,7 @@ void GameScreen::DrawAnswerChoices(int sw, int sh, bool locked) {
     float gap  = 14.f;
     float totalW = numChoices * btnW + (numChoices - 1) * gap;
     float startX = cx - totalW * 0.5f;
-    float btnY   = (float)sh * 0.82f;
+    float btnY   = (float)sh - btnH - 16.f;
 
     const char* choiceLabels[4] = { "A", "B", "C", "D" };
     const char* tfLabels[2]     = { "TRUE", "FALSE" };

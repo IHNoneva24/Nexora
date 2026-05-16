@@ -137,10 +137,10 @@ void SinglePlayerScreen::DrawBackground(int sw, int sh) const {
 }
 
 void SinglePlayerScreen::DrawMoneyLadder(int sw, int sh) const {
-    float ladderX = (float)sw - 220.f;
-    float ladderW = 200.f;
-    float rowH    = 28.f;
-    float startY  = (float)sh * 0.08f;
+    float ladderW = 260.f;
+    float ladderX = (float)sw - ladderW - 16.f;
+    float rowH    = 34.f;
+    float startY  = (float)sh * 0.06f;
 
     // Draw from top (question 15) to bottom (question 1)
     for (int i = TOTAL_QUESTIONS - 1; i >= 0; --i) {
@@ -174,7 +174,7 @@ void SinglePlayerScreen::DrawMoneyLadder(int sw, int sh) const {
 
         // Question number
         std::string num = std::to_string(i + 1);
-        UI::Label(num, ladderX + 6.f, ry + 4.f, 14.f, textCol, m_font);
+        UI::Label(num, ladderX + 8.f, ry + 6.f, 16.f, textCol, m_font);
 
         // Money value
         std::string money = FormatMoney(PRIZE_VALUES[i]);
@@ -183,9 +183,9 @@ void SinglePlayerScreen::DrawMoneyLadder(int sw, int sh) const {
                       isCompleted ? Color{80,160,80,200} :
                       Color{200,160,50,200};
         }
-        Vector2 sz = MeasureTextEx(m_font, money.c_str(), 14.f, 1);
+        Vector2 sz = MeasureTextEx(m_font, money.c_str(), 16.f, 1);
         DrawTextEx(m_font, money.c_str(),
-                   { ladderX + ladderW - sz.x - 8.f, ry + 4.f }, 14.f, 1, textCol);
+                   { ladderX + ladderW - sz.x - 10.f, ry + 6.f }, 16.f, 1, textCol);
     }
 }
 
@@ -325,12 +325,11 @@ void SinglePlayerScreen::DrawAnswerChoices(int sw, int sh) {
 }
 
 void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
-    float cx = (float)sw * 0.5f - 60.f;
-    float llY = (float)sh * 0.12f;
-    float btnSize = 56.f;
-    float gap = 20.f;
+    float llY = (float)sh * 0.78f;
+    float btnSize = 50.f;
+    float gap = 14.f;
     float totalW = btnSize * 3 + gap * 2;
-    float startX = cx - totalW * 0.5f;
+    float startX = 20.f;
 
     bool canUse = (m_phase == Phase::Playing && m_selectedAnswer < 0);
 
@@ -468,8 +467,9 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
     }
 
     // Walk Away button
+    float llCX = startX + totalW * 0.5f;
     float waW = 130.f, waH = 36.f;
-    Rectangle waRect = { cx - waW * 0.5f, llY + btnSize + 12.f, waW, waH };
+    Rectangle waRect = { llCX - waW * 0.5f, llY + btnSize + 10.f, waW, waH };
     if (canUse) {
         if (UI::Button(waRect, "WALK AWAY", m_font, 16.f)) {
             try {
@@ -486,18 +486,18 @@ void SinglePlayerScreen::DrawLifelines(int sw, int sh) {
     }
 
     // Current winnings display
-    float winY = llY + btnSize + 12.f + waH + 16.f;
+    float winY = llY - 24.f;
     std::string winStr = "Current: " + FormatMoney(
         (m_questionIdx > 0) ? PRIZE_VALUES[m_questionIdx - 1] : 0);
-    UI::LabelC(winStr, cx, winY, 16.f, UI::C_TEXT_DIM, m_font);
+    UI::LabelC(winStr, llCX, winY, 16.f, UI::C_TEXT_DIM, m_font);
 
     // Safety net info
     if (m_questionIdx <= SAFETY_NET_1) {
         UI::LabelC("Safety: " + FormatMoney(PRIZE_VALUES[SAFETY_NET_1]),
-                   cx, winY + 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
+                   llCX, winY - 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
     } else if (m_questionIdx <= SAFETY_NET_2) {
         UI::LabelC("Safety: " + FormatMoney(PRIZE_VALUES[SAFETY_NET_2]),
-                   cx, winY + 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
+                   llCX, winY - 20.f, 13.f, { 160, 140, 80, 160 }, m_font);
     }
 }
 
