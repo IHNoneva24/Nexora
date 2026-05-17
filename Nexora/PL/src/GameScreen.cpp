@@ -21,11 +21,13 @@ static void DrawSword(Texture2D tex, float cx, float platformY, float charH,
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 void GameScreen::Load(const std::string& assetRoot, Font font) {
-    m_assetRoot = assetRoot;
-    m_font      = font;
+    m_assetRoot  = assetRoot;
+    m_font       = font;
+    m_background = LoadTexture((assetRoot + "/background3.png").c_str());
 }
 
 void GameScreen::Unload() {
+    UnloadTexture(m_background);
     CharacterRenderer::UnloadLayers(m_leftLayers);
     CharacterRenderer::UnloadLayers(m_rightLayers);
     if (m_leftSword.id)  { UnloadTexture(m_leftSword);  m_leftSword  = {}; }
@@ -72,6 +74,8 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
                                                     : "Male Hand/Male Sword.png")).c_str());
     if (m_leftSword.id)  SetTextureFilter(m_leftSword,  TEXTURE_FILTER_POINT);
     if (m_rightSword.id) SetTextureFilter(m_rightSword, TEXTURE_FILTER_POINT);
+    m_leftFemale  = leftFemale;
+    m_rightFemale = rightFemale;
 
     StartRound();
 }
@@ -144,12 +148,12 @@ Color GameScreen::CharTint(int playerIdx) const {
 }
 
 void GameScreen::DrawBackground(int sw, int sh) const {
-    DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
-    // subtle arena floor gradient
-    for (int i = 0; i < 80; ++i) {
-        float alpha = (float)i / 80.f * 40.f;
-        DrawRectangle(0, sh - 80 + i, sw, 1, { 60, 45, 20, (unsigned char)alpha });
-    }
+    if (m_background.id != 0)
+        DrawTexturePro(m_background,
+            { 0, 0, (float)m_background.width, (float)m_background.height },
+            { 0, 0, (float)sw, (float)sh }, { 0, 0 }, 0.f, WHITE);
+    else
+        DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
     // centre divider
     float cx = (float)sw * 0.5f;
     DrawLineEx({ cx, 90.f }, { cx, (float)sh - 60.f }, 1, { 80, 60, 20, 80 });
@@ -274,8 +278,7 @@ void GameScreen::DrawAnswerChoices(int sw, int sh, bool locked) {
 }
 
 void GameScreen::DrawCharacters(int sw, int sh) const {
-    float platY = (float)sh * 0.76f;
-    float platW = (float)sw * 0.25f;
+    float platY   = (float)sh * 0.68f;
     float leftCX  = (float)sw * 0.20f + m_leftOffsetX;
     float rightCX = (float)sw * 0.80f + m_rightOffsetX;
 
@@ -286,19 +289,18 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
         shakeOff = std::sin(elapsed * 55.f) * 9.f * (m_shakeTimer / 0.4f);
     }
 
-    DrawPlatform((float)sw * 0.20f, platY, platW, PLAT_H);
-    DrawPlatform((float)sw * 0.80f, platY, platW, PLAT_H);
-
     // Left character (flipped via source-rect so it faces right)
     {
         float cx = leftCX + (m_shakeTarget == 0 ? shakeOff : 0.f);
         Color tint = CharTint(0);
-        CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H, true);
+        int   lFeetIdx = m_leftFemale  ? 2 : -1;
+        float lYOff    = m_leftFemale  ? -14.f : 0.f;
+        CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H, true, lFeetIdx, 5.f, lYOff);
         if (tint.r != 255 || tint.g != 255 || tint.b != 255) {
             float scale = CHAR_H / CharacterRenderer::FRAME_H;
             float destW = CharacterRenderer::FRAME_W * scale;
             float destH = CharacterRenderer::FRAME_H * scale;
-            Rectangle dest = { cx - destW * .5f, platY - destH, destW, destH };
+            Rectangle dest = { cx - destW * .5f, (platY + lYOff) - destH, destW, destH };
             DrawRectangleRec(dest, { 255, 60, 60, 80 });
         }
         if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
@@ -312,12 +314,14 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
     {
         float cx = rightCX + (m_shakeTarget == 1 ? shakeOff : 0.f);
         Color tint = CharTint(1);
-        CharacterRenderer::Draw(m_rightLayers, cx, platY, CHAR_H);
+        int   rFeetIdx = m_rightFemale ? 2 : -1;
+        float rYOff    = m_rightFemale ? -14.f : 0.f;
+        CharacterRenderer::Draw(m_rightLayers, cx, platY, CHAR_H, false, rFeetIdx, 5.f, rYOff);
         if (tint.r != 255 || tint.g != 255 || tint.b != 255) {
             float scale = CHAR_H / CharacterRenderer::FRAME_H;
             float destW = CharacterRenderer::FRAME_W * scale;
             float destH = CharacterRenderer::FRAME_H * scale;
-            Rectangle dest = { cx - destW * .5f, platY - destH, destW, destH };
+            Rectangle dest = { cx - destW * .5f, (platY + rYOff) - destH, destW, destH };
             DrawRectangleRec(dest, { 255, 60, 60, 80 });
         }
         if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
@@ -386,7 +390,7 @@ void GameScreen::DrawResultOverlay(int sw, int sh) const {
 
 void GameScreen::DrawGameOver(int sw, int sh, NetworkManager& net) {
     float cx = (float)sw * 0.5f;
-    DrawRectangle(0, 0, sw, sh, { 6, 4, 2, 255 });
+    DrawBackground(sw, sh);
 
     UI::LabelShadow("GAME OVER", cx, (float)sh * 0.12f, 52.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(cx - 200.f, (float)sh * 0.12f + 60.f, 400.f);

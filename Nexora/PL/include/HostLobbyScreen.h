@@ -29,7 +29,8 @@ private:
     ScreenID DrawLobbyScreen (int sw, int sh, NetworkManager& net);
     void DrawPlatform(float cx, float y, float w, float h);
 
-    Font        m_font     = {};
+    Font        m_font       = {};
+    Texture2D   m_background = {};
     std::string m_assetRoot;
     std::string   m_hostName;
 

@@ -58,5 +58,4 @@ private:
     LayerSet m_femaleTop;
     LayerSet m_femaleSkirt;
     LayerSet m_femaleFeet;
-    bool     m_showSkirt = false;
 };

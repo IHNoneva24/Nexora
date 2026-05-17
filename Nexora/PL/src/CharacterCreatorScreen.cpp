@@ -130,7 +130,6 @@ void CharacterCreatorScreen::Enter(int userId, CharacterService& charSvc) {
         m_femaleTop.index  = clamp(data.topIdx,  (int)m_femaleTop.textures.size());
         m_femaleSkirt.index = clamp(data.pantsIdx, (int)m_femaleSkirt.textures.size());
         m_femaleFeet.index = clamp(data.feetIdx, (int)m_femaleFeet.textures.size());
-        m_showSkirt = (data.pantsIdx > 0);
     }
 }
 
@@ -170,6 +169,7 @@ bool CharacterCreatorScreen::Selector(float cx, float y, float bSize,
 void CharacterCreatorScreen::DrawLayeredPreview(float cx, float py, float maxH) const {
     // Collect active layers in draw order (back → front)
     std::vector<const Texture2D*> layers;
+    int feetLayerIdx = -1;
     auto push = [&](const LayerSet& ls) {
         if (!ls.textures.empty()) layers.push_back(&ls.textures[ls.index]);
     };
@@ -183,8 +183,8 @@ void CharacterCreatorScreen::DrawLayeredPreview(float cx, float py, float maxH) 
     } else {
         push(m_femaleSkin);
         push(m_femaleTop);
-        if (m_showSkirt) push(m_femaleSkirt);
-        push(m_femaleFeet);
+        feetLayerIdx = (int)layers.size(); push(m_femaleFeet);
+        push(m_femaleSkirt);
         push(m_femaleHair);
     }
 
@@ -196,9 +196,12 @@ void CharacterCreatorScreen::DrawLayeredPreview(float cx, float py, float maxH) 
     float destH  = FRAME_H * scale;
     Rectangle dest = { cx - destW * .5f, py, destW, destH };
 
-    for (const Texture2D* t : layers) {
-        if (t->id != 0)
-            DrawTexturePro(*t, FRAME_SRC, dest, { 0, 0 }, 0.f, WHITE);
+    for (int i = 0; i < (int)layers.size(); ++i) {
+        const Texture2D* t = layers[i];
+        if (t->id == 0) continue;
+        Rectangle d = dest;
+        if (i == feetLayerIdx) d.y += 5.f;
+        DrawTexturePro(*t, FRAME_SRC, d, { 0, 0 }, 0.f, WHITE);
     }
 }
 
@@ -260,16 +263,6 @@ ScreenID CharacterCreatorScreen::Tick(float dt, CharacterService& charSvc) {
 
     if (m_gender == 0) {
         Selector(selCX, selStartY + selGapY * 4, btnSz, m_malePants, "PANTS");
-    } else {
-        // Skirt toggle
-        float skirtY = selStartY + selGapY * 4;
-        UI::LabelC("SKIRT", selCX, skirtY - 16.f, 13.f, UI::C_TEXT_DIM, m_font);
-        float toggleW = 120.f, toggleH = 34.f;
-        Rectangle toggleRect = { selCX - toggleW * 0.5f, skirtY, toggleW, toggleH };
-        const char* skirtLabel = m_showSkirt ? "ON" : "OFF";
-        if (UI::Button(toggleRect, skirtLabel, m_font, 18.f)) {
-            m_showSkirt = !m_showSkirt;
-        }
     }
 
     // ── Back / Confirm ────────────────────────────────────────────────────────
@@ -293,7 +286,7 @@ ScreenID CharacterCreatorScreen::Tick(float dt, CharacterService& charSvc) {
             data.skinIdx  = m_femaleSkin.index;
             data.hairIdx  = m_femaleHair.index;
             data.topIdx   = m_femaleTop.index;
-            data.pantsIdx = m_showSkirt ? 1 : 0;
+            data.pantsIdx = 1;
             data.feetIdx  = m_femaleFeet.index;
         }
         charSvc.Save(data);

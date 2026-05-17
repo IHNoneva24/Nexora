@@ -61,8 +61,8 @@ inline std::vector<Texture2D> LoadLayers(const CharacterData& data,
 
         load(skin + "Female Skin" + n(data.skinIdx) + ".png");
         if (data.topIdx  < 10) load(cloth + tops[data.topIdx]);
-        if (data.pantsIdx > 0) load(cloth + "Skirt.png");
-        if (data.feetIdx < 7)  load(cloth + feet[data.feetIdx]);
+        if (data.feetIdx < 7)  load(cloth + feet[data.feetIdx]); // feet before skirt (index 2)
+        if (data.pantsIdx > 0) load(cloth + "Skirt.png");         // skirt covers boots
         load(hair + "Female Hair" + n(data.hairIdx) + ".png");
     }
     return layers;
@@ -75,18 +75,25 @@ inline void UnloadLayers(std::vector<Texture2D>& layers) {
 
 // Draw the standing frame centered at cx, sitting on top of platformY.
 // Pass flipped=true to mirror the sprite horizontally (no GPU readback needed).
+// feetLayerIdx: which layer index is the boots/feet (-1 = none).
+// feetYOff: extra y offset (positive = lower) applied only to the feet layer.
+// yOff: applied to all layers (negative = move character up).
 inline void Draw(const std::vector<Texture2D>& layers,
-                 float cx, float platformY, float charH, bool flipped = false) {
+                 float cx, float platformY, float charH, bool flipped = false,
+                 int feetLayerIdx = -1, float feetYOff = 0.f, float yOff = 0.f) {
     if (layers.empty()) return;
     float scale = charH / FRAME_H;
     float destW = FRAME_W * scale;
     float destH = FRAME_H * scale;
-    Rectangle dest = { cx - destW * .5f, platformY - destH, destW, destH };
-    Rectangle src  = FRAME_SRC;
+    float baseY = platformY + yOff - destH;
+    Rectangle src = FRAME_SRC;
     if (flipped) src.width = -src.width;
-    for (const auto& t : layers)
-        if (t.id != 0)
-            DrawTexturePro(t, src, dest, { 0, 0 }, 0.f, WHITE);
+    for (int i = 0; i < (int)layers.size(); ++i) {
+        if (layers[i].id == 0) continue;
+        float ly = baseY + (i == feetLayerIdx ? feetYOff : 0.f);
+        Rectangle dest = { cx - destW * .5f, ly, destW, destH };
+        DrawTexturePro(layers[i], src, dest, { 0, 0 }, 0.f, WHITE);
+    }
 }
 
 } // namespace CharacterRenderer

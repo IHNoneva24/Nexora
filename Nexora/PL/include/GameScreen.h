@@ -40,7 +40,8 @@ private:
     Color CharTint(int playerIdx) const; // 0=left, 1=right
     void DrawPlatform(float cx, float y, float w, float h) const;
 
-    Font        m_font      = {};
+    Font        m_font       = {};
+    Texture2D   m_background = {};
     std::string m_assetRoot;
 
     // Questions — each player answers the OTHER player's questions
@@ -71,6 +72,8 @@ private:
     NetRole m_role = NetRole::None;
 
     // Character rendering
+    bool                   m_leftFemale  = false;
+    bool                   m_rightFemale = false;
     std::vector<Texture2D> m_leftLayers;
     std::vector<Texture2D> m_rightLayers;
     Texture2D              m_leftSword  = {};

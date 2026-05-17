@@ -26,7 +26,8 @@ public:
 private:
     void DrawPlatform(float cx, float y, float w, float h);
 
-    Font        m_font     = {};
+    Font        m_font       = {};
+    Texture2D   m_background = {};
     std::string m_assetRoot;
     std::string m_gameName;
     std::string m_myUsername;      // our logged-in username
