@@ -100,9 +100,9 @@ inline bool InputField(Rectangle r, std::string& text, bool active,
 
 // Grayed-out non-clickable button
 inline void ButtonDisabled(Rectangle r, const std::string& label, Font font, float fs = 22.f) {
-    DrawRectangleRec(r, { 22, 16, 8, 160 });
-    DrawRectangleLinesEx(r, 2, { 80, 65, 30, 160 });
-    Color tc = { 100, 88, 55, 160 };
+    DrawRectangleRec(r, { 22, 16, 8, 210 });
+    DrawRectangleLinesEx(r, 2, { 80, 65, 30, 210 });
+    Color tc = { 100, 88, 55, 210 };
     Vector2 sz = MeasureTextEx(font, label.c_str(), fs, 1);
     Vector2 tp = { r.x + (r.width - sz.x) * .5f, r.y + (r.height - sz.y) * .5f };
     DrawTextEx(font, label.c_str(), tp, fs, 1, tc);

@@ -38,7 +38,8 @@ private:
     bool Selector(float cx, float y, float bSize, LayerSet& ls, const std::string& label);
     void DrawLayeredPreview(float cx, float py, float maxH) const;
 
-    Font        m_font     = {};
+    Font        m_font       = {};
+    Texture2D   m_background = {};
     std::string m_assetRoot;
     int         m_gender   = 0;   // 0 = Male, 1 = Female
     int         m_userId   = 0;

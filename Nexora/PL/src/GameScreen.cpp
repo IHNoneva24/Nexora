@@ -5,18 +5,6 @@
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-static void FlipLayersHorizontal(std::vector<Texture2D>& layers) {
-    for (auto& tex : layers) {
-        if (tex.id == 0) continue;
-        Image img = LoadImageFromTexture(tex);
-        ImageFlipHorizontal(&img);
-        UnloadTexture(tex);
-        tex = LoadTextureFromImage(img);
-        SetTextureFilter(tex, TEXTURE_FILTER_POINT);
-        UnloadImage(img);
-    }
-}
-
 static void DrawSword(Texture2D tex, float cx, float platformY, float charH,
                       bool flipped, float angle, Color tint) {
     if (tex.id == 0) return;
@@ -70,9 +58,6 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
         std::swap(m_leftLayers, m_rightLayers);
     }
 
-    // Pre-flip left character so it faces right (toward opponent)
-    FlipLayersHorizontal(m_leftLayers);
-
     // Load sword textures
     const std::string hand  = m_assetRoot + "/GandalfHardcore Character Asset Pack/";
     bool leftFemale  = (m_role == NetRole::Host) ? (ctx.myChar.gender == 1)
@@ -87,16 +72,6 @@ void GameScreen::Enter(const GameContext& ctx, NetworkManager& net) {
                                                     : "Male Hand/Male Sword.png")).c_str());
     if (m_leftSword.id)  SetTextureFilter(m_leftSword,  TEXTURE_FILTER_POINT);
     if (m_rightSword.id) SetTextureFilter(m_rightSword, TEXTURE_FILTER_POINT);
-
-    // Pre-flip left sword to match the pre-flipped character
-    if (m_leftSword.id) {
-        Image img = LoadImageFromTexture(m_leftSword);
-        ImageFlipHorizontal(&img);
-        UnloadTexture(m_leftSword);
-        m_leftSword = LoadTextureFromImage(img);
-        SetTextureFilter(m_leftSword, TEXTURE_FILTER_POINT);
-        UnloadImage(img);
-    }
 
     StartRound();
 }
@@ -314,11 +289,11 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
     DrawPlatform((float)sw * 0.20f, platY, platW, PLAT_H);
     DrawPlatform((float)sw * 0.80f, platY, platW, PLAT_H);
 
-    // Left character
+    // Left character (flipped via source-rect so it faces right)
     {
         float cx = leftCX + (m_shakeTarget == 0 ? shakeOff : 0.f);
         Color tint = CharTint(0);
-        CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H);
+        CharacterRenderer::Draw(m_leftLayers, cx, platY, CHAR_H, true);
         if (tint.r != 255 || tint.g != 255 || tint.b != 255) {
             float scale = CHAR_H / CharacterRenderer::FRAME_H;
             float destW = CharacterRenderer::FRAME_W * scale;
@@ -328,7 +303,7 @@ void GameScreen::DrawCharacters(int sw, int sh) const {
         }
         if (m_animState == AnimState::Lunge || m_animState == AnimState::Impact) {
             if (m_roundWinner == 0) {
-                DrawSword(m_leftSword, cx + 14.f, platY, CHAR_H, false, 20.f, WHITE);
+                DrawSword(m_leftSword, cx + 14.f, platY, CHAR_H, true, 20.f, WHITE);
             }
         }
     }

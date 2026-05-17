@@ -75,6 +75,8 @@ int main() {
             if (current == ScreenID::Game) {
                 // Save questions from the question creation phase
                 questionCreate.FillGameContext(ctx);
+                // Reload own character directly so it's always current
+                charSvc.Load(auth.GetUserId(), ctx.myChar);
                 gameScreen.Enter(ctx, net);
             }
             if (current == ScreenID::SinglePlayerGame) {

@@ -74,16 +74,19 @@ inline void UnloadLayers(std::vector<Texture2D>& layers) {
 }
 
 // Draw the standing frame centered at cx, sitting on top of platformY.
+// Pass flipped=true to mirror the sprite horizontally (no GPU readback needed).
 inline void Draw(const std::vector<Texture2D>& layers,
-                 float cx, float platformY, float charH) {
+                 float cx, float platformY, float charH, bool flipped = false) {
     if (layers.empty()) return;
     float scale = charH / FRAME_H;
     float destW = FRAME_W * scale;
     float destH = FRAME_H * scale;
     Rectangle dest = { cx - destW * .5f, platformY - destH, destW, destH };
+    Rectangle src  = FRAME_SRC;
+    if (flipped) src.width = -src.width;
     for (const auto& t : layers)
         if (t.id != 0)
-            DrawTexturePro(t, FRAME_SRC, dest, { 0, 0 }, 0.f, WHITE);
+            DrawTexturePro(t, src, dest, { 0, 0 }, 0.f, WHITE);
 }
 
 } // namespace CharacterRenderer

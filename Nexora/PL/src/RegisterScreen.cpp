@@ -1,12 +1,15 @@
 #include "../include/RegisterScreen.h"
 
 void RegisterScreen::Load(const std::string& assetRoot, Font font) {
-    m_font = font;
-    m_bg.Load(assetRoot +
-        "/GandalfHardcore Background layers/Normal BG");
+    m_font    = font;
+    m_bgImage = LoadTexture((assetRoot + "/background1.png").c_str());
+    if (m_bgImage.id != 0)
+        SetTextureFilter(m_bgImage, TEXTURE_FILTER_BILINEAR);
     Reset();
 }
-void RegisterScreen::Unload() { m_bg.Unload(); }
+void RegisterScreen::Unload() {
+    if (m_bgImage.id != 0) UnloadTexture(m_bgImage);
+}
 void RegisterScreen::Reset() {
     m_username = m_password = m_confirm = m_errorMsg = m_successMsg = "";
     m_focus = 0; m_msgTimer = 0.f; m_done = false;
@@ -16,7 +19,6 @@ ScreenID RegisterScreen::Tick(float dt, AuthService& auth) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
-    m_bg.Update(dt);
     if (m_msgTimer > 0.f) m_msgTimer -= dt;
 
     if (m_done && m_msgTimer <= 0.f) { Reset(); return ScreenID::Login; }
@@ -30,7 +32,19 @@ ScreenID RegisterScreen::Tick(float dt, AuthService& auth) {
     const Rectangle rConf = { fX, pY + 285.f, fW, fH };
 
     // ── Draw ──────────────────────────────────────────────────────────────────
-    m_bg.Draw(sw, sh);
+    if (m_bgImage.id != 0) {
+        float scaleX = (float)sw / (float)m_bgImage.width;
+        float scaleY = (float)sh / (float)m_bgImage.height;
+        float scale  = (scaleX > scaleY) ? scaleX : scaleY;
+        float drawW  = (float)m_bgImage.width  * scale;
+        float drawH  = (float)m_bgImage.height * scale;
+        DrawTexturePro(m_bgImage,
+            { 0, 0, (float)m_bgImage.width, (float)m_bgImage.height },
+            { (sw - drawW) * 0.5f, (sh - drawH) * 0.5f, drawW, drawH },
+            { 0, 0 }, 0.f, WHITE);
+    } else {
+        DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 255 });
+    }
     UI::DrawPanel({ pX, pY, pW, pH }, 3);
     UI::LabelC("REGISTER", cx, pY + 18.f, 30.f, UI::C_TEXT_GOLD, m_font);
     UI::Divider(pX + 30.f, pY + 58.f, pW - 60.f);

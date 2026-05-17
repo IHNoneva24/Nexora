@@ -1,12 +1,15 @@
 #include "../include/LoginScreen.h"
 
 void LoginScreen::Load(const std::string& assetRoot, Font font) {
-    m_font = font;
-    m_bg.Load(assetRoot +
-        "/GandalfHardcore Background layers/Normal BG");
+    m_font    = font;
+    m_bgImage = LoadTexture((assetRoot + "/background1.png").c_str());
+    if (m_bgImage.id != 0)
+        SetTextureFilter(m_bgImage, TEXTURE_FILTER_BILINEAR);
     Reset();
 }
-void LoginScreen::Unload() { m_bg.Unload(); }
+void LoginScreen::Unload() {
+    if (m_bgImage.id != 0) UnloadTexture(m_bgImage);
+}
 void LoginScreen::Reset() {
     m_username = m_password = m_errorMsg = m_successMsg = "";
     m_focus = 0; m_msgTimer = 0.f; m_loggedIn = false; m_checking = false;
@@ -16,7 +19,6 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
-    m_bg.Update(dt);
     if (m_msgTimer > 0.f) m_msgTimer -= dt;
 
     // Auto-navigate after successful login display
@@ -50,7 +52,19 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
     const Rectangle rPass = { fX, pY + 190.f, fW, fH };
 
     // ── Draw BG ───────────────────────────────────────────────────────────────
-    m_bg.Draw(sw, sh);
+    if (m_bgImage.id != 0) {
+        float scaleX = (float)sw / (float)m_bgImage.width;
+        float scaleY = (float)sh / (float)m_bgImage.height;
+        float scale  = (scaleX > scaleY) ? scaleX : scaleY;
+        float drawW  = (float)m_bgImage.width  * scale;
+        float drawH  = (float)m_bgImage.height * scale;
+        DrawTexturePro(m_bgImage,
+            { 0, 0, (float)m_bgImage.width, (float)m_bgImage.height },
+            { (sw - drawW) * 0.5f, (sh - drawH) * 0.5f, drawW, drawH },
+            { 0, 0 }, 0.f, WHITE);
+    } else {
+        DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 255 });
+    }
 
     // ── Panel ─────────────────────────────────────────────────────────────────
     UI::DrawPanel({ pX, pY, pW, pH }, 3);

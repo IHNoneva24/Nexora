@@ -1,7 +1,6 @@
 #pragma once
 #include "raylib.h"
 #include "enum.h"
-#include "ParallaxBackground.h"
 #include "UIHelpers.h"
 #include "../../BLL/include/AuthService.h"
 #include <string>
@@ -18,8 +17,8 @@ public:
     ScreenID Tick(float dt, AuthService& auth);
 
 private:
-    ParallaxBackground m_bg;
-    Font               m_font = {};
+    Texture2D m_bgImage = {};
+    Font      m_font   = {};
 
     std::string m_username, m_password, m_confirm;
     int         m_focus     = 0;  // 0 user, 1 pass, 2 confirm

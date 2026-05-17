@@ -31,8 +31,9 @@ void CharacterCreatorScreen::UnloadSet(LayerSet& ls) {
 // ── Load ─────────────────────────────────────────────────────────────────────
 
 void CharacterCreatorScreen::Load(const std::string& assetRoot, Font font) {
-    m_assetRoot = assetRoot;
-    m_font      = font;
+    m_assetRoot  = assetRoot;
+    m_font       = font;
+    m_background = LoadTexture((assetRoot + "/character-backround.png").c_str());
 
     const std::string base = assetRoot + "/GandalfHardcore Character Asset Pack/";
 
@@ -97,6 +98,7 @@ void CharacterCreatorScreen::Load(const std::string& assetRoot, Font font) {
 }
 
 void CharacterCreatorScreen::Unload() {
+    UnloadTexture(m_background);
     UnloadSet(m_maleSkin);  UnloadSet(m_maleHair);
     UnloadSet(m_maleTop);   UnloadSet(m_malePants); UnloadSet(m_maleFeet);
 
@@ -205,8 +207,14 @@ ScreenID CharacterCreatorScreen::Tick(float dt, CharacterService& charSvc) {
     int sw = GetScreenWidth(), sh = GetScreenHeight();
     float cx = (float)sw * .5f;
 
-    // Dark background overlay
-    DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 240 });
+    // Background image
+    if (m_background.id != 0)
+        DrawTexturePro(m_background,
+            { 0, 0, (float)m_background.width, (float)m_background.height },
+            { 0, 0, (float)sw, (float)sh },
+            { 0, 0 }, 0.f, WHITE);
+    else
+        DrawRectangle(0, 0, sw, sh, { 10, 6, 2, 240 });
 
     // ── Title ─────────────────────────────────────────────────────────────────
     UI::LabelShadow("CHARACTER CREATOR", cx, (float)sh * .04f, 46.f, UI::C_TEXT_GOLD, m_font);

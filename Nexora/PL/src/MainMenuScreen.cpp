@@ -4,7 +4,7 @@ void MainMenuScreen::Load(const std::string& assetRoot, Font font) {
     m_assetRoot = assetRoot;
     m_font      = font;
 
-    std::string bgPath = assetRoot + "/main-menu-background.png";
+    std::string bgPath = assetRoot + "/background2.png";
     m_bgImage = LoadTexture(bgPath.c_str());
     if (m_bgImage.id != 0)
         SetTextureFilter(m_bgImage, TEXTURE_FILTER_BILINEAR);
@@ -33,12 +33,6 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
                        { 0, 0 }, 0.f, WHITE);
     }
 
-    // ── Title ─────────────────────────────────────────────────────────────────
-    const char* title = "NEXORA";
-    float titleY = (float)sh * .18f;
-    UI::LabelShadow(title, cx, titleY, 66.f, UI::C_TEXT_GOLD, m_font);
-    UI::Divider(cx - 170.f, titleY + 74.f, 340.f);
-
     // ── Main buttons ──────────────────────────────────────────────────────────
     float bW = 264.f, bH = 54.f;
     float bX = cx - bW * .5f;
@@ -51,7 +45,7 @@ ScreenID MainMenuScreen::Tick(float dt, AuthService& auth, CharacterService& cha
     bool loggedIn = auth.IsLoggedIn();
     bool hasChar  = loggedIn && charSvc.HasCharacter(auth.GetUserId());
     bool canPlay  = loggedIn && hasChar;
-
+    
     Rectangle spRect   = { bX, sY,           bW, bH };
     Rectangle hostRect = { bX, sY + gap,     bW, bH };
     Rectangle joinRect = { bX, sY + gap*2,   bW, bH };
