@@ -131,7 +131,7 @@ ScreenID LoginScreen::Tick(float dt, AuthService& auth, NetworkManager& net) {
 
     // Hint
     UI::LabelC("Don't have an account? Click REGISTER",
-               cx, pY + pH - 18.f, 13.f, UI::C_TEXT_DIM, m_font);
+               cx, pY + pH - 26.f, 13.f, UI::C_TEXT_DIM, m_font);
 
     return ScreenID::Login;
 }

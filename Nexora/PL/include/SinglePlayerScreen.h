@@ -52,6 +52,8 @@ private:
 
     Font        m_font      = {};
     std::string m_assetRoot;
+    Texture2D   m_background = {};
+    Texture2D   m_bgGameOver = {};
     Phase       m_phase     = Phase::Playing;
 
     // Questions
